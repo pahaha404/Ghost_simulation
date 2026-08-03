@@ -90,6 +90,8 @@ namespace GhostCounselor
         public int day = 1;
         public int money;
         public string lastGhostId = "";
+        public int counselsCompletedToday;
+        public List<string> ghostsMetToday = new();
         public List<GhostProgress> ghosts = new();
         public List<string> items = new();
         public List<string> achievements = new();

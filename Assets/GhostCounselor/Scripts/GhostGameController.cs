@@ -25,6 +25,8 @@ namespace GhostCounselor
         private const float AnswerSeconds = 10f;
         private const float ScaryThreshold = 5f;
         private const float ActionGapBelowDialogue = 12f;
+        // 1·3·6일 차에는 두 명, 나머지 날에는 세 명을 상담한다.
+        private static readonly int[] DailyCounselTargets = { 2, 3, 2, 3, 3, 2, 3 };
 
         private static readonly string[] TitlePages =
         {
@@ -395,7 +397,7 @@ namespace GhostCounselor
 
             string message =
                 $"영업 {save.day}일 차\n\n" +
-                "오늘도 신당 앞에\n서늘한 기척이 느껴진다.";
+                $"오늘은 귀신 {TodayCounselTarget()}명을\n상담해야 한다.";
             if (!ShowInnerThought(message, "영업 시작", ShowDayStartDetails))
                 ShowDayStartDetails();
         }
@@ -404,7 +406,7 @@ namespace GhostCounselor
         {
             nameText.text = "귀신 상담소";
             titleText.text = "오늘의 영업 준비";
-            dialogueText.text = "문을 열면 오늘의 손님 한 명이 들어옵니다.";
+            dialogueText.text = $"문을 열면 오늘의 첫 손님이 들어옵니다.\n오늘 상담: 0 / {TodayCounselTarget()}명";
             ClearActions();
             ledger?.ShowDayStart(save.money, PrototypeDays - save.day + 1);
             AddButton("신당 문 열기", BeginVisit, accent);
@@ -412,6 +414,7 @@ namespace GhostCounselor
 
         private void BeginVisit()
         {
+            EnsureDailyCounselState();
             currentGhost = PickGhost();
             currentProgress = GetProgress(currentGhost.id);
             phase = GamePhase.Visit;
@@ -582,12 +585,16 @@ namespace GhostCounselor
 
         private void ApplyResult(CounselResult result, string answer)
         {
+            EnsureDailyCounselState();
             save.money += result.TotalPay;
             currentProgress.visitCount++;
             currentProgress.relationship = Mathf.Clamp(currentProgress.relationship + result.relationshipDelta, -2, 4);
             currentProgress.specialSolved |= result.outcome == CounselOutcome.SpecialSolved;
             save.lastGhostId = currentGhost.id;
             archiveUi?.RecordCounsel(save.day, currentGhost, result, answer);
+            save.counselsCompletedToday++;
+            if (!save.ghostsMetToday.Contains(currentGhost.id))
+                save.ghostsMetToday.Add(currentGhost.id);
 
             if (!string.IsNullOrEmpty(result.itemName))
                 save.items.Add(result.itemName);
@@ -623,12 +630,15 @@ namespace GhostCounselor
                 ? $"{payer}\n{result.itemName}을 주고 갔습니다."
                 : $"{payer}\n{result.TotalPay:N0}원을 복비로 주고 갔습니다.";
 
-            if (!ShowInnerThought(message, "밤 정산", ShowNight))
+            bool hasMoreCounselsToday = save.counselsCompletedToday < TodayCounselTarget();
+            string nextLabel = hasMoreCounselsToday ? "다음 손님" : "밤 정산";
+            Action nextAction = hasMoreCounselsToday ? BeginVisit : ShowNight;
+            if (!ShowInnerThought(message, nextLabel, nextAction))
             {
                 nameText.text = currentGhost.displayName;
                 titleText.text = "상담 보상";
                 dialogueText.text = message;
-                AddButton("밤 정산", ShowNight, accent);
+                AddButton(nextLabel, nextAction, accent);
             }
         }
 
@@ -667,7 +677,10 @@ namespace GhostCounselor
 
         private void NextDay()
         {
+            EnsureDailyCounselState();
             save.day++;
+            save.counselsCompletedToday = 0;
+            save.ghostsMetToday.Clear();
             GhostSaveSystem.Save(save);
             ShowDayStart();
         }
@@ -711,18 +724,34 @@ namespace GhostCounselor
 
         private GhostDefinition PickGhost()
         {
-            if (save.day == 1 && GetProgress("sticker").visitCount == 0)
+            if (save.day == 1 && save.counselsCompletedToday == 0 && GetProgress("sticker").visitCount == 0)
                 return GhostContentLibrary.Find(ghosts, "sticker");
 
             List<GhostDefinition> unvisited = ghosts
-                .Where(ghost => GetProgress(ghost.id).visitCount == 0)
+                .Where(ghost => GetProgress(ghost.id).visitCount == 0 && !save.ghostsMetToday.Contains(ghost.id))
                 .ToList();
             List<GhostDefinition> pool = unvisited.Count > 0
                 ? unvisited
-                : ghosts.Where(ghost => ghost.id != save.lastGhostId).ToList();
+                : ghosts.Where(ghost => !save.ghostsMetToday.Contains(ghost.id) && ghost.id != save.lastGhostId).ToList();
+
+            // 하루에 같은 귀신이 두 번 나오지 않도록 먼저 제외한다. 모든 후보가 제외되는
+            // 예외 상황에서도 진행이 멈추지 않도록 마지막 손님만 피해서 다시 고른다.
+            if (pool.Count == 0)
+                pool = ghosts.Where(ghost => ghost.id != save.lastGhostId).ToList();
 
             int index = UnityEngine.Random.Range(0, pool.Count);
             return pool[index];
+        }
+
+        private int TodayCounselTarget()
+        {
+            int index = Mathf.Clamp(save.day - 1, 0, DailyCounselTargets.Length - 1);
+            return DailyCounselTargets[index];
+        }
+
+        private void EnsureDailyCounselState()
+        {
+            save.ghostsMetToday ??= new List<string>();
         }
 
         private GhostProgress GetProgress(string ghostId)
