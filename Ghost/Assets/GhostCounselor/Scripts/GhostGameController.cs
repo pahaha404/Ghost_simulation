@@ -73,6 +73,8 @@ namespace GhostCounselor
         private GhostCounselorUIReferences editableUi;
         // Captured from the scene-authored Canvas so designer placement survives runtime state changes.
         private Vector2 portraitHomePosition;
+        // The visible face image has its own editable position inside Portrait Root.
+        private Vector2 portraitImageHomePosition;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
@@ -129,7 +131,8 @@ namespace GhostCounselor
             if (scary)
             {
                 float shake = Mathf.Sin(Time.unscaledTime * 35f) * 4f;
-                portraitPanel.rectTransform.anchoredPosition = portraitHomePosition + new Vector2(shake, 0f);
+                if (portraitImage != null && portraitImage.gameObject.activeSelf)
+                    portraitImage.rectTransform.anchoredPosition = portraitImageHomePosition + new Vector2(shake, 0f);
             }
 
             if (answerTime <= 0f)
@@ -205,6 +208,9 @@ namespace GhostCounselor
             ledgerPanel = ui.ledgerPanel;
             ledgerText = ui.ledgerText;
             portraitHomePosition = portraitPanel.rectTransform.anchoredPosition;
+            portraitImageHomePosition = portraitImage != null
+                ? portraitImage.rectTransform.anchoredPosition
+                : Vector2.zero;
             ui.ApplyRuntimeFont(font);
         }
 
@@ -390,7 +396,7 @@ namespace GhostCounselor
                 return;
 
             phase = GamePhase.Result;
-            portraitPanel.rectTransform.anchoredPosition = portraitHomePosition;
+            ResetPortraitPositions();
             CounselResult result = Evaluate(intent);
             ApplyResult(result);
             ShowResult(result);
@@ -588,10 +594,19 @@ namespace GhostCounselor
 
         private void ResetPortrait()
         {
-            portraitPanel.rectTransform.anchoredPosition = portraitHomePosition;
+            ResetPortraitPositions();
             SetPortraitRootTransparent();
             HidePortrait();
             timerText.text = "";
+        }
+
+        private void ResetPortraitPositions()
+        {
+            if (portraitPanel != null)
+                portraitPanel.rectTransform.anchoredPosition = portraitHomePosition;
+
+            if (portraitImage != null)
+                portraitImage.rectTransform.anchoredPosition = portraitImageHomePosition;
         }
 
         private GhostPortraitSet CurrentPortraitSet()
@@ -635,14 +650,21 @@ namespace GhostCounselor
         private void ShowScaryGhostPortrait()
         {
             GhostPortraitSet portraits = CurrentPortraitSet();
-            if (portraits != null && portraits.questionExpressionSequence != null &&
-                portraits.questionExpressionSequence.Length > 0)
+            if (portraits == null)
+                return;
+
+            // 거울각시는 마지막 표정(scary)을 사용한다. 다른 귀신은 표정 목록이 비어 있어도
+            // 기본 초상을 숨기지 않고 그대로 흔들어 공포 타이머를 표현한다.
+            Sprite scaryPortrait = portraits.questionExpressionSequence?
+                .LastOrDefault(sprite => sprite != null);
+            if (scaryPortrait != null)
             {
-                ShowGhostPortrait(portraits.questionExpressionSequence[portraits.questionExpressionSequence.Length - 1]);
+                ShowGhostPortrait(scaryPortrait);
                 return;
             }
 
-            HidePortrait();
+            if (portraitImage == null || !portraitImage.gameObject.activeSelf || portraitImage.sprite == null)
+                ShowGhostPortrait(portraits.defaultPortrait);
         }
 
         private void ShowGhostPortrait(Sprite sprite)
