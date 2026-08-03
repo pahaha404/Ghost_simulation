@@ -64,6 +64,14 @@
 
 ## 커밋 기록
 
+### 2026-08-03 — 중앙 안내와 속마음 모달 추가
+
+- 커밋: `4708594` — `feat: 중앙 안내와 속마음 모달 추가`
+- 바뀐 점: 배경을 투명 회색으로 어둡게 하고 중앙 크림 카드, 안내/속마음 문구, 확인 버튼을 표시하는 재사용 모달을 추가했다.
+- 주요 파일: `Assets/GhostCounselor/Scripts/GhostInnerThoughtModal.cs` — 모달 열기, 닫기, 확인 후 콜백 실행을 담당한다.
+- 주요 파일: `Assets/GhostCounselor/Editor/InnerThoughtModalBuilder.cs` — `Ghost Counselor` 메뉴를 눌렀을 때만 GameScene에 편집 가능한 모달 계층을 생성한다.
+- 확인: `dotnet build Ghost.slnx --no-restore` 성공(경고 0, 오류 0). Unity 메뉴 실행과 Game View 모양 확인 필요.
+
 ### 2026-08-03 — 장부 표시를 전용 코드로 분리
 
 - 커밋: `c4ad932` — `refactor: 장부 표시를 전용 코드로 분리`
