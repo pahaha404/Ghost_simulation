@@ -698,23 +698,45 @@ namespace GhostCounselor
                 return;
             }
 
-            // 영상이 등록되어 있으면 기존 텍스트 결말 대신 전체화면 시네마틱을 재생합니다.
-            // 영상 파일이 없거나 아직 카탈로그를 만들지 않았다면 기존 결말 UI로 안전하게 진행합니다.
-            if (GhostCinematicPlayer.TryPlay(currentStoryVisit.cinematicId, () => ShowRewardNotice(result)))
+            // 영상이 끝나도 기존 성불 대사와 장면 설명을 이어서 보여 준 뒤,
+            // 마지막으로 주인공의 개인적인 소감을 보여 준다.
+            if (GhostCinematicPlayer.TryPlay(currentStoryVisit.cinematicId, () => ShowPurificationText(result)))
             {
                 currentProgress.cinematicSeen = true;
                 GhostSaveSystem.Save(save);
                 return;
             }
 
+            ShowPurificationText(result);
+        }
+
+        private void ShowPurificationText(CounselResult result)
+        {
             string message = $"{currentGhost.displayName}\n\n“{currentStoryVisit.purificationLine}”\n\n{currentStoryVisit.cinematicSummary}";
             currentProgress.cinematicSeen = true;
             GhostSaveSystem.Save(save);
-            if (!ShowInnerThought(message, "성불을 배웅한다", () => ShowRewardNotice(result)))
+            if (!ShowInnerThought(message, "성불을 배웅한다", () => ShowShamanReflection(result)))
             {
                 dialogueText.text = message;
                 ClearActions();
-                AddButton("성불을 배웅한다", () => ShowRewardNotice(result), accent);
+                AddButton("성불을 배웅한다", () => ShowShamanReflection(result), accent);
+            }
+        }
+
+        private void ShowShamanReflection(CounselResult result)
+        {
+            string reflection = currentStoryVisit?.shamanReflection;
+            if (string.IsNullOrWhiteSpace(reflection))
+            {
+                ShowRewardNotice(result);
+                return;
+            }
+
+            if (!ShowInnerThought(reflection, "마음을 정리한다", () => ShowRewardNotice(result)))
+            {
+                dialogueText.text = reflection;
+                ClearActions();
+                AddButton("마음을 정리한다", () => ShowRewardNotice(result), accent);
             }
         }
 
@@ -1112,6 +1134,7 @@ namespace GhostCounselor
             label.resizeTextMinSize = 13;
             label.resizeTextMaxSize = 19;
             Stretch(label.rectTransform, 12f);
+            PositionActionAreaBelowDialogue(actionArea.childCount);
             if (selectedActionButton == null)
                 SelectActionButton(button);
         }
@@ -1134,10 +1157,19 @@ namespace GhostCounselor
             Vector3 bottomLeft = parent.InverseTransformPoint(corners[0]);
             Vector3 topRight = parent.InverseTransformPoint(corners[2]);
 
+            // Dialogue uses Overflow vertically so the RectTransform itself stays at
+            // its authored height even when the text becomes longer.  Use the text's
+            // calculated preferred height here; otherwise the action button is placed
+            // at the old fixed bottom edge and overlaps the overflowing glyphs.
+            float dialogueHeight = Mathf.Max(
+                dialogueText.rectTransform.rect.height,
+                LayoutUtility.GetPreferredHeight(dialogueText.rectTransform));
+            float dialogueBottom = topRight.y - dialogueHeight;
+
             // Convert the parent's centered local coordinate into its bottom-left
             // anchored coordinate. The action area's top then begins just beneath Dialogue.
             float x = bottomLeft.x + parent.rect.width * parent.pivot.x;
-            float y = bottomLeft.y + parent.rect.height * parent.pivot.y - ActionGapBelowDialogue;
+            float y = dialogueBottom + parent.rect.height * parent.pivot.y - ActionGapBelowDialogue;
             float width = Mathf.Max(1f, topRight.x - bottomLeft.x);
             float height = Mathf.Max(70f, buttonCount * 70f + Mathf.Max(0, buttonCount - 1) * 8f);
 

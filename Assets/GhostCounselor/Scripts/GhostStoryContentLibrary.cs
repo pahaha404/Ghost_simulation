@@ -37,7 +37,7 @@ namespace GhostCounselor
                 AnswerIntent.Empathy,
                 Q("그 왕딱지는 직접 접으셨어요?", "인쇄소 장부 표지로 접었지. 도윤이 놈 주려고 가장 좋은 부분만 남겼고."),
                 Q("도윤 씨와 마지막으로 딱지 친 게 언제예요?", "마지막이랄 게 있나. 늘 납품 끝나고 하자고 했지."),
-                Q("왜 죠?", "내가 못 간 대신 이놈이라도 가면 약속을 지킨 셈이잖아."),
+                Q("왜 꼭 누군가 이 딱지를 받아야 하죠?", "내가 못 간 대신 이놈이라도 가면 약속을 지킨 셈이잖아."),
                 "순구는 꿈속에서 도윤의 이름을 부른다. 중년의 도윤을 보고 당황해 꿈을 깨지만, 그가 울었다는 사실은 기억한다.",
                 "내가 찾던 애는 여덟 살인데 웬 아저씨가 나오더라고. 그런데 그 아저씨가 나를 보고 울었어.",
                 "sticker_found_adult_doyun",
@@ -80,7 +80,8 @@ namespace GhostCounselor
                 R("그래. 이번 약속에는 ‘나중에’가 없구먼.", "보여 주는 사랑 말고 같이 있는 사랑도 있지.", "또 약속을 미루라는 말이군.", "겁을 줘서 지키는 약속은 오래 못 가."),
                 "그래, 한 판은 이기고 지는 동안이 아니라 같이 앉아 있는 동안이구나.",
                 "cin_sticker_last_match",
-                "해 질 무렵 도윤과 하린이 딱지를 친다. 잠시 어린 도윤과 젊은 순구가 한 판을 끝까지 함께하고, 햇빛 속에 왕딱지만 남는다.")
+                "해 질 무렵 도윤과 하린이 딱지를 친다. 잠시 어린 도윤과 젊은 순구가 한 판을 끝까지 함께하고, 햇빛 속에 왕딱지만 남는다.",
+                "내가 잘 들어 준다고 해서 누구의 시간을 대신 돌려줄 수 있는 건 아니다. 그래도 오늘만큼은, 누군가의 ‘나중에’를 지금으로 데려올 수 있었다.")
         };
 
         private static List<GhostStoryVisitData> Mirror() => new()
@@ -135,7 +136,8 @@ namespace GhostCounselor
                 R("제 이름으로 시작하는 말이 이렇게 따뜻한 줄 몰랐어요.", "웃는 것도 연습하면 되는 일이군요.", "또 제 얼굴을 보지 않은 채 끝내라는 말처럼 들려요.", "두려움이 없어져야만 앞으로 갈 수 있는 건 아니에요."),
                 "이 얼굴로 누군가를 살렸고, 이 얼굴로 웃을 수도 있네요.",
                 "cin_mirror_first_smile",
-                "새벽의 빈 미용실. 거울 속 연화가 흉터를 가리던 손을 내리고 여러 표정을 연습하다 환하게 웃는다. 아침빛 속에 손거울 조각이 남는다.")
+                "새벽의 빈 미용실. 거울 속 연화가 흉터를 가리던 손을 내리고 여러 표정을 연습하다 환하게 웃는다. 아침빛 속에 손거울 조각이 남는다.",
+                "상처를 없애는 말은 못 했다. 다만 스스로를 보려는 사람 옆에서, 도망가지 않고 앉아 있을 수는 있었다.")
         };
 
         private static List<GhostStoryVisitData> Bus() => new()
@@ -190,7 +192,8 @@ namespace GhostCounselor
                 R("그럼 엄마도 저도 시간을 되돌리지 않아도 집에 갈 수 있겠네요.", "어머니의 대답을 끝까지 들은 뒤 돌아오세요.", "저는 안전한 정류장에서 너무 오래 기다렸어요.", "죽었다는 건 알아요. 그래서 마지막 인사를 하려는 거예요."),
                 "이번에는 늦어서 미안하다고만 하지 않을래요. 엄마를 만나서, 다녀왔다고 할래요.",
                 "cin_bus_homecoming",
-                "비가 그친 정류장에 오래된 47번 버스가 도착한다. 민우는 늙은 어머니에게 ‘다녀왔습니다’라고 말하고, 어머니는 ‘왔니. 밥 먹자’라고 답한다.")
+                "비가 그친 정류장에 오래된 47번 버스가 도착한다. 민우는 늙은 어머니에게 ‘다녀왔습니다’라고 말하고, 어머니는 ‘왔니. 밥 먹자’라고 답한다.",
+                "돌아갈 수 없는 날을 붙잡는 대신, 민우는 지금의 어머니에게 인사했다. 나도 누군가의 마지막 말을 너무 늦기 전에 들어야겠다.")
         };
 
         private static List<GhostStoryVisitData> Merchant() => new()
@@ -245,7 +248,8 @@ namespace GhostCounselor
                 R("받는 것도 거래보다 용기가 필요한 일이었군.", "돈주머니를 밖에 두고 들어가 ‘잘 먹겠습니다’라고 먼저 말하시오.", "또 물건으로 나를 대신 보내라는 말이군.", "버릇 아래 굶던 아이가 있다는 걸 이제 알았소."),
                 "나는 갚아야만 손님인 줄 알았소. 그 사람은 처음부터 나를 사람으로 앉혀 줬는데.",
                 "cin_merchant_last_bowl",
-                "저승 장터의 빈 국밥집. 순덕은 만복의 손을 탁 치며 ‘밥 식는다’고 말하고, 만복은 처음으로 가격을 묻지 않은 채 국밥을 먹는다.")
+                "저승 장터의 빈 국밥집. 순덕은 만복의 손을 탁 치며 ‘밥 식는다’고 말하고, 만복은 처음으로 가격을 묻지 않은 채 국밥을 먹는다.",
+                "받는 일도 용기라는 걸, 저승 상인에게 배웠다. 장부에 적히지 않는 친절도 분명 남는다.")
         };
 
         private static List<GhostStoryVisitData> Bell() => new()
@@ -300,7 +304,8 @@ namespace GhostCounselor
                 R("네가 내 제자의 흉내를 그만두었구나. 이제야 네가 보인다. 잘했다, 아가.", "장부를 먼저 펼치는 버릇도 네 방식이 되었구나. 나쁘지 않다.", "가르침은 답안지가 아니다.", "홀로 선다는 건 귀를 닫는 일이 아니다."),
                 "부탁은 다 지켰다. 이제 나도 내 제자를 믿고 가마.",
                 "cin_bell_teacher_grace",
-                "해주와 스승과 주인공의 손이 같은 방울 매듭을 묶는다. 주인공은 스승이 자신을 버린 것이 아니라 혼자 설 수 있도록 먼저 손을 놓았음을 떠올린다.")
+                "해주와 스승과 주인공의 손이 같은 방울 매듭을 묶는다. 주인공은 스승이 자신을 버린 것이 아니라 혼자 설 수 있도록 먼저 손을 놓았음을 떠올린다.",
+                "스승님은 나를 혼자 남긴 게 아니라, 혼자 설 자리를 남겨 주셨다. 방울이 조용한 밤에도 그 뜻은 들릴 것 같다.")
         };
 
         private static QuestionData Q(string prompt, string reply) => new(prompt, reply, reply);
@@ -309,7 +314,7 @@ namespace GhostCounselor
             int stage, string title, string greeting, string guide, string critical,
             AnswerIntent preferred, QuestionData question1, QuestionData question2, QuestionData question3,
             string successAction, string retryGreeting, string successFlag,
-            Dictionary<AnswerIntent, string> reactions, string purificationLine = "", string cinematicId = "", string cinematicSummary = "")
+            Dictionary<AnswerIntent, string> reactions, string purificationLine = "", string cinematicId = "", string cinematicSummary = "", string shamanReflection = "")
         {
             return new GhostStoryVisitData
             {
@@ -326,7 +331,8 @@ namespace GhostCounselor
                 successFlag = successFlag,
                 purificationLine = purificationLine,
                 cinematicId = cinematicId,
-                cinematicSummary = cinematicSummary
+                cinematicSummary = cinematicSummary,
+                shamanReflection = shamanReflection
             };
         }
 

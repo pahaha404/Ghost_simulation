@@ -97,6 +97,8 @@ namespace GhostCounselor
         public string purificationLine;
         public string cinematicId;
         public string cinematicSummary;
+        // 성불 장면을 본 뒤 주인공이 혼잣말로 정리하는 짧은 소감이다.
+        public string shamanReflection;
     }
 
     [Serializable]
