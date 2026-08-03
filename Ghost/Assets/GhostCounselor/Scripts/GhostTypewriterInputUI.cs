@@ -33,6 +33,7 @@ namespace GhostCounselor
         [SerializeField] private GameObject typewriterRoot;
         [SerializeField] private Text guideText;
         [SerializeField] private InputField inputField;
+        [SerializeField] private Text typedPreviewText;
         [SerializeField] private Image enterLamp;
         [SerializeField] private Text enterLabel;
         [SerializeField] private TypewriterKeyView[] keyViews = Array.Empty<TypewriterKeyView>();
@@ -53,6 +54,8 @@ namespace GhostCounselor
 
         private void Awake()
         {
+            DisableFullScreenRaycastBlocker();
+            ConfigureVisibleInputText();
             CacheKeyColors();
             if (inputField != null)
                 inputField.onValueChanged.AddListener(RefreshEnterLamp);
@@ -69,6 +72,7 @@ namespace GhostCounselor
             GameObject root,
             Text guide,
             InputField input,
+            Text typedPreview,
             Image lamp,
             Text label,
             TypewriterKeyView[] keys)
@@ -76,9 +80,12 @@ namespace GhostCounselor
             typewriterRoot = root;
             guideText = guide;
             inputField = input;
+            typedPreviewText = typedPreview;
             enterLamp = lamp;
             enterLabel = label;
             keyViews = keys ?? Array.Empty<TypewriterKeyView>();
+            DisableFullScreenRaycastBlocker();
+            ConfigureVisibleInputText();
             CacheKeyColors();
         }
 
@@ -92,6 +99,7 @@ namespace GhostCounselor
             typewriterRoot.SetActive(true);
             inputField.text = string.Empty;
             RefreshEnterLamp(inputField.text);
+            inputField.ForceLabelUpdate();
             inputField.ActivateInputField();
             inputField.Select();
             return inputField;
@@ -144,10 +152,100 @@ namespace GhostCounselor
         private void RefreshEnterLamp(string value)
         {
             bool ready = !string.IsNullOrWhiteSpace(value);
+            if (inputField != null)
+            {
+                // Use the InputField's actual Text component as the one visible answer.
+                // The previous separate preview made it easy for a manually moved UI to
+                // be hidden behind the white answer frame.
+                if (inputField.placeholder != null)
+                    inputField.placeholder.gameObject.SetActive(!ready);
+                if (inputField.textComponent != null)
+                {
+                    inputField.textComponent.gameObject.SetActive(true);
+                    inputField.textComponent.color = new Color(0.12f, 0.09f, 0.09f, 1f);
+                    inputField.textComponent.rectTransform.SetAsLastSibling();
+                }
+                inputField.ForceLabelUpdate();
+            }
+            if (typedPreviewText != null)
+            {
+                // Old scenes can still contain the experimental preview object.
+                // Keep it inactive so there is only one reliable visible text layer.
+                typedPreviewText.gameObject.SetActive(false);
+            }
             if (enterLamp != null)
                 enterLamp.color = ready ? readyColor : unavailableColor;
             if (enterLabel != null)
                 enterLabel.color = ready ? Color.white : new Color(0.78f, 0.78f, 0.73f, 1f);
+        }
+
+        private void EnsureTypedPreview()
+        {
+            if (typedPreviewText != null || inputField == null)
+                return;
+
+            Transform parent = inputField.transform.parent;
+            Transform existing = parent != null ? parent.Find("Typed Answer Preview - Always Visible") : null;
+            if (existing != null)
+            {
+                typedPreviewText = existing.GetComponent<Text>();
+                return;
+            }
+
+            if (parent == null)
+                return;
+
+            // This is only a runtime safety net for older GameScene layouts that were
+            // created before the preview text existed. It never changes parent positions.
+            GameObject previewObject = new("Typed Answer Preview - Always Visible", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+            previewObject.transform.SetParent(parent, false);
+            typedPreviewText = previewObject.GetComponent<Text>();
+            typedPreviewText.font = Font.CreateDynamicFontFromOSFont(
+                new[] { "Malgun Gothic", "맑은 고딕", "LegacyRuntime.ttf" }, 20);
+            typedPreviewText.fontSize = 20;
+            typedPreviewText.color = new Color(0.19f, 0.15f, 0.15f, 1f);
+            typedPreviewText.alignment = TextAnchor.MiddleLeft;
+            typedPreviewText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            typedPreviewText.verticalOverflow = VerticalWrapMode.Truncate;
+            typedPreviewText.raycastTarget = false;
+            RectTransform rect = typedPreviewText.rectTransform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = new Vector2(24f, 24f);
+            rect.offsetMax = new Vector2(-24f, -24f);
+            rect.SetAsLastSibling();
+        }
+
+        private void DisableFullScreenRaycastBlocker()
+        {
+            if (typewriterRoot == null)
+                return;
+
+            Image rootImage = typewriterRoot.GetComponent<Image>();
+            if (rootImage != null)
+                rootImage.raycastTarget = false;
+        }
+
+        private void ConfigureVisibleInputText()
+        {
+            if (inputField == null || inputField.textComponent == null)
+                return;
+
+            Text visibleText = inputField.textComponent;
+            visibleText.gameObject.SetActive(true);
+            visibleText.color = new Color(0.12f, 0.09f, 0.09f, 1f);
+            visibleText.supportRichText = false;
+            visibleText.raycastTarget = false;
+            visibleText.rectTransform.SetAsLastSibling();
+
+            // This is deliberately attached only to the text child, not the whole
+            // typewriter. It gives the answer letters their own foreground sorting
+            // layer without moving any user-authored RectTransform.
+            Canvas foregroundCanvas = visibleText.GetComponent<Canvas>();
+            if (foregroundCanvas == null)
+                foregroundCanvas = visibleText.gameObject.AddComponent<Canvas>();
+            foregroundCanvas.overrideSorting = true;
+            foregroundCanvas.sortingOrder = 100;
         }
 
         private void CacheKeyColors()

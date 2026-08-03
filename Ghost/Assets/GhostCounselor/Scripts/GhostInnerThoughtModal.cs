@@ -57,6 +57,19 @@ namespace GhostCounselor
                 modalRoot.SetActive(false);
         }
 
+        /// <summary>Enter 입력이 화면의 확인 버튼과 같은 Confirm 경로를 사용하게 한다.</summary>
+        public bool TryConfirmFromKeyboard()
+        {
+            if (!IsShowing)
+                return false;
+
+            if (confirmButton != null && confirmButton.interactable)
+                confirmButton.onClick.Invoke();
+            else
+                Confirm();
+            return true;
+        }
+
         private void Confirm()
         {
             Action callback = onConfirmed;

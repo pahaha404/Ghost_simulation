@@ -40,6 +40,8 @@ namespace GhostCounselor
         private readonly Color paperDark = Hex("D9C7A5");
         private readonly Color accent = Hex("A9403A");
         private readonly Color spirit = Hex("59786F");
+        private readonly Color choiceFocus = Hex("D6AE5D");
+        private readonly Color choicePressed = Hex("BD8430");
 
         private IReadOnlyList<GhostDefinition> ghosts;
         private IIntentClassifier classifier;
@@ -73,6 +75,11 @@ namespace GhostCounselor
         private GhostCounselorUIReferences editableUi;
         private GhostInnerThoughtModal innerThoughtModal;
         private GhostTypewriterInputUI typewriterAnswerUi;
+        private GhostArchiveUI archiveUi;
+        private GhostCounselingTimerDial timerDial;
+        private Button selectedActionButton;
+        // 답변을 제출한 Enter가 같은 프레임에 새로 나타난 "다음" 버튼까지 누르지 않게 한다.
+        private int suppressEnterActionFrame = -1;
         // Captured from the scene-authored Canvas so designer placement survives runtime state changes.
         private Vector2 portraitHomePosition;
         // The visible face image has its own editable position inside Portrait Root.
@@ -117,11 +124,40 @@ namespace GhostCounselor
 
         private void Update()
         {
+            Keyboard keyboard = Keyboard.current;
+            bool enterPressed = keyboard != null &&
+                (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame);
+
+            // 열린 책/태블릿은 게임 진행보다 먼저 입력을 소비한다.
+            if (archiveUi != null && archiveUi.IsShowingAnyWindow)
+            {
+                if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
+                    archiveUi.TryCloseFromKeyboard();
+                return;
+            }
+
+            // 안내 UI가 떠 있을 때는 안내 버튼만 입력을 받는다.
+            if (innerThoughtModal != null && innerThoughtModal.IsShowing)
+            {
+                if (enterPressed)
+                    innerThoughtModal.TryConfirmFromKeyboard();
+                return;
+            }
+
+            HandleChoiceNavigation(keyboard);
+
+            // 현재 선택지가 정확히 하나일 때에만 Enter로 그 버튼을 누른다.
+            if (enterPressed && Time.frameCount != suppressEnterActionFrame && TryInvokeSingleActionButton())
+                return;
+
             if (phase != GamePhase.CriticalAnswer || answerInput == null)
                 return;
 
             answerTime -= Time.unscaledDeltaTime;
-            timerText.text = $"{Mathf.CeilToInt(Mathf.Max(0f, answerTime))}";
+            if (timerDial != null && timerDial.IsConfigured)
+                timerDial.SetRemaining(answerTime);
+            else
+                timerText.text = $"{Mathf.CeilToInt(Mathf.Max(0f, answerTime))}";
 
             if (!scary && answerTime <= ScaryThreshold)
             {
@@ -145,6 +181,62 @@ namespace GhostCounselor
             if ((typewriterAnswerUi == null || !typewriterAnswerUi.IsShowing) &&
                 HasPressedEnter() && !string.IsNullOrWhiteSpace(answerInput.text))
                 SubmitAnswer();
+        }
+
+        private bool TryInvokeSingleActionButton()
+        {
+            Button[] visibleButtons = ActiveActionButtons();
+            if (visibleButtons.Length != 1)
+                return false;
+
+            visibleButtons[0].onClick.Invoke();
+            return true;
+        }
+
+        private void HandleChoiceNavigation(Keyboard keyboard)
+        {
+            // 타자기 입력 중 W/S는 답변 글자이므로 선택지 이동에 쓰지 않는다.
+            if (keyboard == null || (typewriterAnswerUi != null && typewriterAnswerUi.IsShowing) ||
+                (phase == GamePhase.CriticalAnswer && answerInput != null))
+                return;
+
+            bool moveUp = keyboard.wKey.wasPressedThisFrame || keyboard.upArrowKey.wasPressedThisFrame;
+            bool moveDown = keyboard.sKey.wasPressedThisFrame || keyboard.downArrowKey.wasPressedThisFrame;
+            if (!moveUp && !moveDown)
+                return;
+
+            Button[] choices = ActiveActionButtons();
+            if (choices.Length <= 1)
+                return;
+
+            int currentIndex = Array.IndexOf(choices, selectedActionButton);
+            if (currentIndex < 0)
+                currentIndex = 0;
+
+            int nextIndex = moveUp
+                ? Mathf.Max(0, currentIndex - 1)
+                : Mathf.Min(choices.Length - 1, currentIndex + 1);
+            SelectActionButton(choices[nextIndex]);
+        }
+
+        private Button[] ActiveActionButtons()
+        {
+            if (actionArea == null)
+                return Array.Empty<Button>();
+
+            return actionArea.GetComponentsInChildren<Button>(false)
+                .Where(button => button != null && button.gameObject.activeInHierarchy && button.interactable)
+                .ToArray();
+        }
+
+        private void SelectActionButton(Button button)
+        {
+            if (button == null)
+                return;
+
+            selectedActionButton = button;
+            EventSystem.current?.SetSelectedGameObject(button.gameObject);
+            button.Select();
         }
 
         private void CreateInterface()
@@ -216,6 +308,11 @@ namespace GhostCounselor
             ledger = new GhostLedgerPresenter(ui.ledgerPanel, ui.ledgerText);
             innerThoughtModal = ui.GetComponent<GhostInnerThoughtModal>();
             typewriterAnswerUi = ui.GetComponent<GhostTypewriterInputUI>();
+            archiveUi = ui.GetComponent<GhostArchiveUI>();
+            timerDial = ui.GetComponent<GhostCounselingTimerDial>();
+            // 책과 태블릿은 타이틀 화면에서도 눌릴 수 있다. 새 게임/이어하기 전에는
+            // 저장하지 않는 빈 데이터로 먼저 버튼을 연결하고, 게임 시작 시 실제 저장본으로 교체한다.
+            archiveUi?.Bind(new SaveData(), ghosts, ui);
             portraitHomePosition = portraitPanel.rectTransform.anchoredPosition;
             portraitImageHomePosition = portraitImage != null
                 ? portraitImage.rectTransform.anchoredPosition
@@ -228,7 +325,7 @@ namespace GhostCounselor
             phase = GamePhase.DayStart;
             UpdateTopBar("문을 열기 전");
             nameText.text = "귀신 상담소";
-            titleText.text = "튜토리얼";
+            titleText.text = "7일 영업 프로토타입";
             HidePortrait();
             SetPortraitRootTransparent();
             titlePage = 0;
@@ -262,6 +359,7 @@ namespace GhostCounselor
         {
             GhostSaveSystem.Delete();
             save = new SaveData();
+            archiveUi?.Bind(save, ghosts, editableUi);
             GhostSaveSystem.Save(save);
             ShowDayStart();
         }
@@ -269,6 +367,7 @@ namespace GhostCounselor
         private void ContinueGame()
         {
             save = GhostSaveSystem.Load();
+            archiveUi?.Bind(save, ghosts, editableUi);
             if (save.day > PrototypeDays)
                 ShowEnding();
             else
@@ -369,7 +468,17 @@ namespace GhostCounselor
             dialogueText.text = currentProgress.visitCount == 0
                 ? currentGhost.criticalQuestion
                 : currentGhost.followUpCriticalQuestion;
-            timerText.text = "10";
+            if (timerDial != null && timerDial.IsConfigured)
+            {
+                timerText.gameObject.SetActive(false);
+                timerText.text = "";
+                timerDial.Show(answerTime);
+            }
+            else
+            {
+                timerText.gameObject.SetActive(true);
+                timerText.text = "10";
+            }
             ClearActions();
 
             if (typewriterAnswerUi != null && typewriterAnswerUi.IsConfigured)
@@ -405,11 +514,14 @@ namespace GhostCounselor
             if (phase != GamePhase.CriticalAnswer)
                 return;
 
+            // Typewriter UI와 이 컨트롤러의 Update가 같은 프레임에 실행될 수 있다.
+            // 이 Enter는 답변 제출에만 쓰고, 결과 화면의 "다음"은 다음 입력에서만 진행한다.
+            suppressEnterActionFrame = Time.frameCount;
             phase = GamePhase.Result;
             typewriterAnswerUi?.Hide();
             ResetPortraitPositions();
             CounselResult result = Evaluate(intent);
-            ApplyResult(result);
+            ApplyResult(result, answer);
             ShowResult(result);
         }
 
@@ -457,13 +569,14 @@ namespace GhostCounselor
             };
         }
 
-        private void ApplyResult(CounselResult result)
+        private void ApplyResult(CounselResult result, string answer)
         {
             save.money += result.TotalPay;
             currentProgress.visitCount++;
             currentProgress.relationship = Mathf.Clamp(currentProgress.relationship + result.relationshipDelta, -2, 4);
             currentProgress.specialSolved |= result.outcome == CounselOutcome.SpecialSolved;
             save.lastGhostId = currentGhost.id;
+            archiveUi?.RecordCounsel(save.day, currentGhost, result, answer);
 
             if (!string.IsNullOrEmpty(result.itemName))
                 save.items.Add(result.itemName);
@@ -485,6 +598,7 @@ namespace GhostCounselor
             titleText.text = $"{OutcomeName(result.outcome)} · {IntentName(result.intent)}으로 받아들였습니다";
             dialogueText.text = $"“{result.reaction}”";
             timerText.text = "";
+            timerDial?.Hide();
             ClearActions();
             AddButton("다음", () => ShowRewardNotice(result), accent);
         }
@@ -660,6 +774,7 @@ namespace GhostCounselor
             SetPortraitRootTransparent();
             HidePortrait();
             timerText.text = "";
+            timerDial?.Hide();
         }
 
         private void ResetPortraitPositions()
@@ -770,6 +885,10 @@ namespace GhostCounselor
             answerInput = null;
             typewriterAnswerUi?.Hide();
             ledger?.Hide();
+            if (selectedActionButton != null && EventSystem.current != null &&
+                EventSystem.current.currentSelectedGameObject == selectedActionButton.gameObject)
+                EventSystem.current.SetSelectedGameObject(null);
+            selectedActionButton = null;
             for (int index = actionArea.childCount - 1; index >= 0; index--)
             {
                 Transform child = actionArea.GetChild(index);
@@ -787,6 +906,8 @@ namespace GhostCounselor
                 templateButton.gameObject.SetActive(true);
                 templateButton.onClick.RemoveAllListeners();
                 templateButton.onClick.AddListener(() => action());
+                DisableBuiltInNavigation(templateButton);
+                ConfigureChoiceFeedback(templateButton);
 
                 // The scene template owns the visual style.  In the authored UI every
                 // selectable answer is a thin cream card; `color` remains for the
@@ -798,6 +919,8 @@ namespace GhostCounselor
 
                 Text templateLabel = templateButton.GetComponentInChildren<Text>(true);
                 templateLabel.text = text;
+                if (selectedActionButton == null)
+                    SelectActionButton(templateButton);
                 return;
             }
 
@@ -811,12 +934,43 @@ namespace GhostCounselor
             button.GetComponent<Image>().color = color;
             SetRect(button.GetComponent<RectTransform>(), x, 5f, width, 70f);
             button.onClick.AddListener(() => action());
+            DisableBuiltInNavigation(button);
+            ConfigureChoiceFeedback(button);
 
             Text label = Label("Label", button.transform, text, 19, paper, TextAnchor.MiddleCenter);
             label.resizeTextForBestFit = true;
             label.resizeTextMinSize = 13;
             label.resizeTextMaxSize = 19;
             Stretch(label.rectTransform, 12f);
+            if (selectedActionButton == null)
+                SelectActionButton(button);
+        }
+
+        private static void DisableBuiltInNavigation(Button button)
+        {
+            Navigation navigation = button.navigation;
+            navigation.mode = Navigation.Mode.None;
+            button.navigation = navigation;
+        }
+
+        private void ConfigureChoiceFeedback(Button button)
+        {
+            ColorBlock colors = button.colors;
+            colors.highlightedColor = choiceFocus;
+            colors.selectedColor = choiceFocus;
+            colors.pressedColor = choicePressed;
+            colors.colorMultiplier = 1f;
+            button.colors = colors;
+
+            Shadow shadow = button.GetComponent<Shadow>();
+            if (shadow == null)
+                shadow = button.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0.18f, 0.08f, 0.07f, 0.72f);
+            shadow.effectDistance = new Vector2(0f, -6f);
+            shadow.useGraphicAlpha = false;
+
+            if (button.GetComponent<GhostChoiceButtonFeedback>() == null)
+                button.gameObject.AddComponent<GhostChoiceButtonFeedback>();
         }
 
         private InputField CreateInput(Transform parent, string placeholder)

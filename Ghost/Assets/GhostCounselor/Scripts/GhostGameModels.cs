@@ -94,6 +94,18 @@ namespace GhostCounselor
         public List<string> items = new();
         public List<string> achievements = new();
         public List<string> seenDialogue = new();
+        public List<LedgerRecord> ledgerRecords = new();
+    }
+
+    [Serializable]
+    public sealed class LedgerRecord
+    {
+        public int day;
+        public string ghostId;
+        public string ghostName;
+        public int money;
+        public string summary;
+        public CounselOutcome outcome;
     }
 
     public sealed class CounselResult

@@ -15,7 +15,8 @@ namespace GhostCounselor.Editor
     {
         private static readonly Color Ink = Hex("302625");
         private static readonly Color Paper = Hex("F6EDCF");
-        private static readonly Color PaperHighlight = Hex("FFF8DC");
+        private static readonly Color PaperHighlight = Hex("D6AE5D");
+        private static readonly Color PaperPressed = Hex("BD8430");
         private static readonly Color Frame = Hex("743B38");
         private static readonly Color Nameplate = Hex("B95552");
 
@@ -125,11 +126,21 @@ namespace GhostCounselor.Editor
             ColorBlock colors = button.colors;
             colors.normalColor = Paper;
             colors.highlightedColor = PaperHighlight;
-            colors.pressedColor = Hex("EAD9B6");
+            colors.pressedColor = PaperPressed;
             colors.selectedColor = PaperHighlight;
             colors.disabledColor = Hex("BBAF99");
             colors.colorMultiplier = 1f;
             button.colors = colors;
+
+            Shadow shadow = button.GetComponent<Shadow>();
+            if (shadow == null)
+                shadow = Undo.AddComponent<Shadow>(button.gameObject);
+            shadow.effectColor = new Color(0.18f, 0.08f, 0.07f, 0.72f);
+            shadow.effectDistance = new Vector2(0f, -6f);
+            shadow.useGraphicAlpha = false;
+
+            if (button.GetComponent<GhostChoiceButtonFeedback>() == null)
+                Undo.AddComponent<GhostChoiceButtonFeedback>(button.gameObject);
 
             LayoutElement layout = button.GetComponent<LayoutElement>();
             layout.preferredWidth = 360f;

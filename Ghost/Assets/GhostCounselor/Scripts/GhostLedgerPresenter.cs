@@ -13,12 +13,10 @@ namespace GhostCounselor
     public sealed class GhostLedgerPresenter
     {
         private readonly Image panel;
-        private readonly Text text;
 
         public GhostLedgerPresenter(Image panel, Text text)
         {
             this.panel = panel;
-            this.text = text;
         }
 
         public void Hide()
@@ -60,11 +58,9 @@ namespace GhostCounselor
 
         private void Show(string value)
         {
-            if (panel == null || text == null)
-                return;
-
-            panel.gameObject.SetActive(true);
-            text.text = value;
+            // The ledger is now opened deliberately through the desk book.  This presenter
+            // remains as a compatibility boundary for the existing game-flow calls.
+            Hide();
         }
     }
 }
