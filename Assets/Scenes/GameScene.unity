@@ -12204,7 +12204,7 @@ MonoBehaviour:
     defaultPortrait: {fileID: -2369867600477939372, guid: 5ff637a239d8670439b4ac92959d1f6d, type: 3}
     questionExpressionSequence: []
   - ghostId: merchant
-    defaultPortrait: {fileID: -2369867600477939372, guid: 30da1c40dc3ca4d4e82f76a90bd940c8, type: 3}
+    defaultPortrait: {fileID: -44328603698726018, guid: 30da1c40dc3ca4d4e82f76a90bd940c8, type: 3}
     questionExpressionSequence: []
   - ghostId: bell
     defaultPortrait: {fileID: -2369867600477939372, guid: 6f31c37c46ec8fe46a3f0a0ba6be0cb9, type: 3}

@@ -55,16 +55,35 @@ namespace GhostCounselor.Editor
             ui.ghostPortraits = Array.ConvertAll(GhostPortraitFolders, portrait => new GhostPortraitSet
             {
                 ghostId = portrait.ghostId,
-                defaultPortrait = AssetDatabase.LoadAssetAtPath<Sprite>(ArtRoot + portrait.folder + "/default.png"),
+                defaultPortrait = LoadLargestSprite(ArtRoot + portrait.folder + "/default.png"),
                 questionExpressionSequence = portrait.ghostId == "mirror"
                     ? Array.ConvertAll(MirrorExpressions, expression =>
-                        AssetDatabase.LoadAssetAtPath<Sprite>(ArtRoot + portrait.folder + "/" + expression))
+                        LoadLargestSprite(ArtRoot + portrait.folder + "/" + expression))
                     : Array.Empty<Sprite>()
             });
             EditorSceneManager.MarkSceneDirty(gameScene);
             EditorSceneManager.SaveScene(gameScene);
             EditorSceneManager.RestoreSceneManagerSetup(previousSetup);
             Debug.Log("[귀신 상담소] 모든 귀신 초상과 거울각시 표정 시퀀스를 GameScene에 연결했습니다.");
+        }
+
+        private static Sprite LoadLargestSprite(string assetPath)
+        {
+            Sprite largest = null;
+            float largestArea = -1f;
+            foreach (UnityEngine.Object asset in AssetDatabase.LoadAllAssetsAtPath(assetPath))
+            {
+                if (asset is not Sprite sprite)
+                    continue;
+
+                float area = sprite.rect.width * sprite.rect.height;
+                if (area <= largestArea)
+                    continue;
+
+                largest = sprite;
+                largestArea = area;
+            }
+            return largest;
         }
 
         private static void Stretch(RectTransform rect)

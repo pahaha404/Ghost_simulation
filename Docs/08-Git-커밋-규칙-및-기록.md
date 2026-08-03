@@ -64,6 +64,13 @@
 
 ## 커밋 기록
 
+### 2026-08-03 — 저승상인 만복 초상 참조 복구
+
+- 커밋: 예정 — `fix: 저승상인 초상 참조 복구`
+- 저승상인 PNG의 작은 Sprite 조각을 참조하던 문제를 큰 초상 Sprite 참조로 교체했다.
+- 주요 파일: `Assets/Scenes/GameScene.unity`, `Assets/GhostCounselor/Editor/FirstGuestPortraitSetupBuilder.cs`.
+- 확인: `dotnet build Ghost.slnx` 성공(경고 0, 오류 0). Unity Play Mode 확인 필요.
+
 ### 2026-08-03 — Unity 프로젝트를 저장소 최상위로 이동
 
 - 커밋: `0325ee9` — `chore: Unity 프로젝트를 저장소 최상위로 이동`
