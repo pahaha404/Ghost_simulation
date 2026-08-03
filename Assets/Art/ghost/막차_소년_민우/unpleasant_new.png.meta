@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: 6395fb3eed009fb4ca409e120f22a3e8
+guid: 73496990d49c2144780592bdba0e9a6d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -88020233714456350
-    second: bokjumeoni_inventory_v1_0
+      213: -7552592659775509458
+    second: unpleasant_new_0
+  - first:
+      213: 8575130042883488075
+    second: unpleasant_new_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +40,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -46,7 +49,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -72,10 +75,10 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 1024
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -126,13 +129,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: bokjumeoni_inventory_v1_0
+      name: unpleasant_new_0
       rect:
         serializedVersion: 2
-        x: 286
-        y: 213
-        width: 680
-        height: 872
+        x: 338
+        y: 44
+        width: 340
+        height: 921
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +144,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2e82764501a47cef0800000000000000
-      internalID: -88020233714456350
+      spriteID: e2cabd4cdfccf2790800000000000000
+      internalID: -7552592659775509458
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: unpleasant_new_1
+      rect:
+        serializedVersion: 2
+        x: 677
+        y: 508
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b49b9dc475bf00770800000000000000
+      internalID: 8575130042883488075
       vertices: []
       indices: 
       edges: []
@@ -151,7 +176,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -161,7 +186,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      bokjumeoni_inventory_v1_0: -88020233714456350
+      unpleasant_new_0: -7552592659775509458
+      unpleasant_new_1: 8575130042883488075
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,10 +1,16 @@
 fileFormatVersion: 2
-guid: 6395fb3eed009fb4ca409e120f22a3e8
+guid: 0e682e79110c0bc4da754ec17b99ecd2
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -88020233714456350
-    second: bokjumeoni_inventory_v1_0
+      213: 6057044869686961144
+    second: interested_new_0
+  - first:
+      213: 1356030722118194011
+    second: interested_new_1
+  - first:
+      213: 8829638126055664167
+    second: interested_new_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +43,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -46,7 +52,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -72,10 +78,10 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 1024
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -126,13 +132,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: bokjumeoni_inventory_v1_0
+      name: interested_new_0
       rect:
         serializedVersion: 2
-        x: 286
-        y: 213
-        width: 680
-        height: 872
+        x: 132
+        y: 0
+        width: 756
+        height: 941
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +147,52 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2e82764501a47cef0800000000000000
-      internalID: -88020233714456350
+      spriteID: 8f32b46a732fe0450800000000000000
+      internalID: 6057044869686961144
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: interested_new_1
+      rect:
+        serializedVersion: 2
+        x: 469
+        y: 934
+        width: 56
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b531f58d1c691d210800000000000000
+      internalID: 1356030722118194011
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: interested_new_2
+      rect:
+        serializedVersion: 2
+        x: 885
+        y: 19
+        width: 6
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72a2bce181d298a70800000000000000
+      internalID: 8829638126055664167
       vertices: []
       indices: 
       edges: []
@@ -151,7 +201,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -161,7 +211,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      bokjumeoni_inventory_v1_0: -88020233714456350
+      interested_new_0: 6057044869686961144
+      interested_new_1: 1356030722118194011
+      interested_new_2: 8829638126055664167
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

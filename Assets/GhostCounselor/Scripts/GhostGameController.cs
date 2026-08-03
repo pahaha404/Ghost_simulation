@@ -24,7 +24,7 @@ namespace GhostCounselor
         private const int PrototypeDays = 7;
         private const float AnswerSeconds = 10f;
         private const float ScaryThreshold = 5f;
-        private const float ActionGapBelowDialogue = 12f;
+        private const float ActionGapBelowDialogue = 35f;
         private const int CounselsPerGhost = 4;
         // 1일 차에는 두 명, 2~7일 차에는 세 명을 상담한다. 총 20회다.
         private static readonly int[] DailyCounselTargets = { 2, 3, 3, 3, 3, 3, 3 };

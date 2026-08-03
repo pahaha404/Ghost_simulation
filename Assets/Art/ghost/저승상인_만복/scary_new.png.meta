@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 6395fb3eed009fb4ca409e120f22a3e8
+guid: 607ce0f1de3a04a48a3da4890acf6e7d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -88020233714456350
-    second: bokjumeoni_inventory_v1_0
+      213: -5958121832511175960
+    second: scary_new_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -46,7 +46,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -72,10 +72,10 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 1024
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -126,13 +126,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: bokjumeoni_inventory_v1_0
+      name: scary_new_0
       rect:
         serializedVersion: 2
-        x: 286
-        y: 213
-        width: 680
-        height: 872
+        x: 153
+        y: 0
+        width: 741
+        height: 999
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2e82764501a47cef0800000000000000
-      internalID: -88020233714456350
+      spriteID: 8e20ca4c2cf705da0800000000000000
+      internalID: -5958121832511175960
       vertices: []
       indices: 
       edges: []
@@ -151,7 +151,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      bokjumeoni_inventory_v1_0: -88020233714456350
+      scary_new_0: -5958121832511175960
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
