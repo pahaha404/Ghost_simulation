@@ -66,7 +66,7 @@
 
 ### 2026-08-03 — Unity 프로젝트를 저장소 최상위로 이동
 
-- 커밋: `a3c7968` — `chore: Unity 프로젝트를 저장소 최상위로 이동`
+- 커밋: `0325ee9` — `chore: Unity 프로젝트를 저장소 최상위로 이동`
 - 바뀐 점: GitHub 첫 화면에서 `Assets`, `Docs`, `Packages`, `ProjectSettings`가 바로 보이도록 기존 `Ghost/` 한 단계 구조를 없앴다. 루트 README의 문서 링크와 프로젝트 열기 안내도 새 경로로 고쳤다.
 - 주요 파일: `Assets/`, `Docs/`, `Packages/`, `ProjectSettings/` — 기존 `Ghost/` 아래의 Unity 프로젝트 원본을 저장소 최상위로 옮겼다.
 - 주요 파일: `README.md`, `Docs/프로젝트-핸드오프.md` — 새 프로젝트 루트와 문서 링크를 반영했다.
