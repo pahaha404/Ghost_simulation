@@ -25,8 +25,9 @@ namespace GhostCounselor
         private const float AnswerSeconds = 10f;
         private const float ScaryThreshold = 5f;
         private const float ActionGapBelowDialogue = 12f;
-        // 1·3·6일 차에는 두 명, 나머지 날에는 세 명을 상담한다.
-        private static readonly int[] DailyCounselTargets = { 2, 3, 2, 3, 3, 2, 3 };
+        private const int CounselsPerGhost = 4;
+        // 1일 차에는 두 명, 2~7일 차에는 세 명을 상담한다. 총 20회다.
+        private static readonly int[] DailyCounselTargets = { 2, 3, 3, 3, 3, 3, 3 };
 
         private static readonly string[] TitlePages =
         {
@@ -727,17 +728,28 @@ namespace GhostCounselor
             if (save.day == 1 && save.counselsCompletedToday == 0 && GetProgress("sticker").visitCount == 0)
                 return GhostContentLibrary.Find(ghosts, "sticker");
 
-            List<GhostDefinition> unvisited = ghosts
-                .Where(ghost => GetProgress(ghost.id).visitCount == 0 && !save.ghostsMetToday.Contains(ghost.id))
+            List<GhostDefinition> candidates = ghosts
+                .Where(ghost =>
+                    !save.ghostsMetToday.Contains(ghost.id) &&
+                    ghost.id != save.lastGhostId &&
+                    GetProgress(ghost.id).visitCount < CounselsPerGhost)
                 .ToList();
-            List<GhostDefinition> pool = unvisited.Count > 0
-                ? unvisited
-                : ghosts.Where(ghost => !save.ghostsMetToday.Contains(ghost.id) && ghost.id != save.lastGhostId).ToList();
 
-            // 하루에 같은 귀신이 두 번 나오지 않도록 먼저 제외한다. 모든 후보가 제외되는
-            // 예외 상황에서도 진행이 멈추지 않도록 마지막 손님만 피해서 다시 고른다.
-            if (pool.Count == 0)
-                pool = ghosts.Where(ghost => ghost.id != save.lastGhostId).ToList();
+            // 모든 귀신의 상담 횟수를 가장 낮은 쪽부터 채운다. 20회가 끝나면
+            // 다섯 귀신 모두 정확히 네 번씩 상담한 상태가 된다.
+            if (candidates.Count == 0)
+            {
+                candidates = ghosts
+                    .Where(ghost =>
+                        !save.ghostsMetToday.Contains(ghost.id) &&
+                        GetProgress(ghost.id).visitCount < CounselsPerGhost)
+                    .ToList();
+            }
+
+            int lowestVisitCount = candidates.Min(ghost => GetProgress(ghost.id).visitCount);
+            List<GhostDefinition> pool = candidates
+                .Where(ghost => GetProgress(ghost.id).visitCount == lowestVisitCount)
+                .ToList();
 
             int index = UnityEngine.Random.Range(0, pool.Count);
             return pool[index];
