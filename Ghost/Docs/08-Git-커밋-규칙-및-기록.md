@@ -64,6 +64,13 @@
 
 ## 커밋 기록
 
+### 2026-08-03 — 마지막 귀신 반응 중 장부 숨김
+
+- 커밋: `f13f5fe` — `fix: 마지막 귀신 반응 중 장부 숨김`
+- 바뀐 점: 귀신이 마지막 반응을 말하는 결과 카드에는 오늘의 장부를 표시하지 않는다. 보상 안내 뒤 밤 정산에서만 장부가 열린다.
+- 주요 파일: `Assets/GhostCounselor/Scripts/GhostGameController.cs` — 결과 단계의 장부 표시 호출을 제거했다.
+- 확인: `dotnet build Ghost.slnx --no-restore` 성공(경고 0, 오류 0). Unity Play Mode 확인 필요.
+
 ### 2026-08-03 — 상담 보상과 일일 안내 모달 전환
 
 - 커밋: `af73abd` — `feat: 상담 보상과 일일 안내 모달 전환`
