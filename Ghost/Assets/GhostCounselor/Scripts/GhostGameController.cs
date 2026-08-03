@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -71,6 +72,7 @@ namespace GhostCounselor
         private InputField answerInput;
         private GhostCounselorUIReferences editableUi;
         private GhostInnerThoughtModal innerThoughtModal;
+        private GhostTypewriterInputUI typewriterAnswerUi;
         // Captured from the scene-authored Canvas so designer placement survives runtime state changes.
         private Vector2 portraitHomePosition;
         // The visible face image has its own editable position inside Portrait Root.
@@ -137,6 +139,12 @@ namespace GhostCounselor
 
             if (answerTime <= 0f)
                 ResolveAnswer("", AnswerIntent.Timeout);
+
+            // The authored typewriter handles Enter itself. This is only a functional
+            // fallback when its scene object has not been created yet.
+            if ((typewriterAnswerUi == null || !typewriterAnswerUi.IsShowing) &&
+                HasPressedEnter() && !string.IsNullOrWhiteSpace(answerInput.text))
+                SubmitAnswer();
         }
 
         private void CreateInterface()
@@ -207,6 +215,7 @@ namespace GhostCounselor
             actionArea = ui.actionArea;
             ledger = new GhostLedgerPresenter(ui.ledgerPanel, ui.ledgerText);
             innerThoughtModal = ui.GetComponent<GhostInnerThoughtModal>();
+            typewriterAnswerUi = ui.GetComponent<GhostTypewriterInputUI>();
             portraitHomePosition = portraitPanel.rectTransform.anchoredPosition;
             portraitImageHomePosition = portraitImage != null
                 ? portraitImage.rectTransform.anchoredPosition
@@ -363,10 +372,19 @@ namespace GhostCounselor
             timerText.text = "10";
             ClearActions();
 
+            if (typewriterAnswerUi != null && typewriterAnswerUi.IsConfigured)
+            {
+                answerInput = typewriterAnswerUi.Show(
+                    $"{currentGhost.displayName}에게 적절한 답변을 제시해주세요!",
+                    SubmitAnswer);
+                return;
+            }
+
+            // The GameScene stays playable before the designer creates the new UI from
+            // the Ghost Counselor menu. No answer-choice route is kept here.
+            Debug.LogWarning("[귀신 상담소] Typewriter Answer UI가 없습니다. 메뉴에서 새 타자기 입력 UI를 생성해 주세요.");
             answerInput = CreateInput(actionArea, "여기에 답변을 입력하세요...");
             SetRect(answerInput.GetComponent<RectTransform>(), 0f, 5f, 720f, 70f);
-            AddButton("답변 전송", SubmitAnswer, accent, 740f, 260f);
-            AddButton("선택지로 답하기", ShowFallbackChoices, spirit, 1010f, 110f);
             answerInput.ActivateInputField();
         }
 
@@ -382,29 +400,13 @@ namespace GhostCounselor
             ResolveAnswer(answer, intent);
         }
 
-        private void ShowFallbackChoices()
-        {
-            if (phase != GamePhase.CriticalAnswer)
-                return;
-
-            ClearActions();
-            AddIntentButton("마음을 이해하고 공감한다", AnswerIntent.Empathy);
-            AddIntentButton("지금 할 수 있는 방법을 제안한다", AnswerIntent.PracticalAdvice);
-            AddIntentButton("대답을 피한다", AnswerIntent.Avoidance);
-            AddIntentButton("화를 내며 몰아붙인다", AnswerIntent.Aggression);
-        }
-
-        private void AddIntentButton(string text, AnswerIntent intent)
-        {
-            AddButton(text, () => ResolveAnswer(text, intent), intent == AnswerIntent.Aggression ? accent : spirit);
-        }
-
         private void ResolveAnswer(string answer, AnswerIntent intent)
         {
             if (phase != GamePhase.CriticalAnswer)
                 return;
 
             phase = GamePhase.Result;
+            typewriterAnswerUi?.Hide();
             ResetPortraitPositions();
             CounselResult result = Evaluate(intent);
             ApplyResult(result);
@@ -766,6 +768,7 @@ namespace GhostCounselor
         private void ClearActions()
         {
             answerInput = null;
+            typewriterAnswerUi?.Hide();
             ledger?.Hide();
             for (int index = actionArea.childCount - 1; index >= 0; index--)
             {
@@ -844,6 +847,13 @@ namespace GhostCounselor
             input.lineType = InputField.LineType.SingleLine;
             input.characterLimit = 80;
             return input;
+        }
+
+        private static bool HasPressedEnter()
+        {
+            Keyboard keyboard = Keyboard.current;
+            return keyboard != null &&
+                (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame);
         }
 
         private Text Label(string objectName, Transform parent, string text, int size, Color color, TextAnchor anchor)

@@ -64,6 +64,15 @@
 
 ## 커밋 기록
 
+### 2026-08-03 — 핵심 고민 타자기 답변 UI 추가
+
+- 커밋: `커밋 전` — `feat: 핵심 고민 타자기 입력 UI 추가`
+- 바뀐 점: 핵심 고민의 선택지 대체와 `답변 전송` 버튼을 제거하고, Enter로만 답변을 제출하도록 바꿨다. 입력 글자가 있으면 `ENTER` 키가 회색에서 초록 불빛으로 변하며, 실제 키보드 입력에 맞춰 화면 타자기 키가 눌린다.
+- 주요 파일: `Assets/GhostCounselor/Scripts/GhostGameController.cs` — 선택지 답변 경로를 제거하고 새 입력 UI를 게임 흐름에 연결했다.
+- 주요 파일: `Assets/GhostCounselor/Scripts/GhostTypewriterInputUI.cs` — Enter 전송, 전송 가능 불빛, 실제 키 눌림 효과를 담당한다.
+- 주요 파일: `Assets/GhostCounselor/Editor/TypewriterAnswerUIBuilder.cs` — 명시적인 Unity 메뉴 실행 때만 편집 가능한 타자기 UI 계층을 생성한다.
+- 확인: `dotnet build Ghost.slnx --no-restore` 성공(경고 0, 오류 0). Unity 메뉴 생성과 한글 IME·Enter·키 눌림의 Play Mode 확인 필요.
+
 ### 2026-08-03 — 중앙 안내 모달을 GameScene에 적용
 
 - 커밋: `6151804` — `ui: 중앙 안내 모달을 GameScene에 적용`
