@@ -484,7 +484,6 @@ namespace GhostCounselor
             dialogueText.text = $"“{result.reaction}”";
             timerText.text = "";
             ClearActions();
-            ledger?.ShowCounselResult(result);
             AddButton("다음", () => ShowRewardNotice(result), accent);
         }
 
