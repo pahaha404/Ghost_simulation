@@ -117,6 +117,7 @@ namespace GhostCounselor
     {
         public int day = 1;
         public int money;
+        public float elapsedPlaySeconds;
         public string lastGhostId = "";
         public int counselsCompletedToday;
         public List<string> ghostsMetToday = new();

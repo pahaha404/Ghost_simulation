@@ -131,6 +131,9 @@ namespace GhostCounselor
 
         private void Update()
         {
+            if (save != null && phase != GamePhase.Ending)
+                save.elapsedPlaySeconds += Time.unscaledDeltaTime;
+
             Keyboard keyboard = Keyboard.current;
             bool enterPressed = keyboard != null &&
                 (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame);
@@ -774,29 +777,9 @@ namespace GhostCounselor
         {
             phase = GamePhase.Ending;
             save ??= GhostSaveSystem.Load();
-            UpdateTopBar("7일 최종 결산");
-            ResetPortrait();
-            string rank = save.money >= 180000 ? "S" :
-                save.money >= 140000 ? "A" :
-                save.money >= 100000 ? "B" :
-                save.money >= 70000 ? "C" : "D";
-            string ending = rank switch
-            {
-                "S" => "저승까지 예약이 밀렸다. 폐업 걱정은 사라졌지만 야근이 시작됐다.",
-                "A" => "월세와 급한 빚을 갚았다. 신당은 정식 귀신 상담소가 되었다.",
-                "B" => "폐업은 막았다. 딱지 할아버지가 홍보를 더 해보겠다고 나섰다.",
-                "C" => "집주인에게 일주일만 더 시간을 얻었다. 상담은 아직 끝나지 않았다.",
-                _ => "돈은 모자랐지만 귀신들이 신당을 지켜주기로 했다. 월세에는 별 도움이 안 된다."
-            };
-            nameText.text = $"최종 등급 {rank}";
-            titleText.text = $"{save.money:N0}원 · 업적 {save.achievements.Count}개";
-            dialogueText.text = ending +
-                $"\n\n만난 귀신 {save.ghosts.Count(progress => progress.visitCount > 0)}/5" +
-                $" · 특별 해결 {save.ghosts.Count(progress => progress.specialSolved)}건" +
-                $" · 환전 물건 {save.items.Count}개";
-            ClearActions();
-            AddButton("처음부터 다시", NewGame, accent);
-            AddButton("제목으로", ShowTitle, spirit);
+            GhostSaveSystem.Save(save);
+            // 프롤로그와 같은 카메라·배경·타이핑 UI를 결말 모드로 재사용한다.
+            PrologueController.RequestEnding();
         }
 
         private GhostDefinition PickGhost()

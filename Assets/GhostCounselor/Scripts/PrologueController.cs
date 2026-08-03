@@ -9,6 +9,7 @@
 using System.Collections;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace GhostCounselor
@@ -17,6 +18,7 @@ namespace GhostCounselor
     public sealed class PrologueController : MonoBehaviour
     {
         private const string StoryResourcePath = "Stories/Prologue";
+        private static bool endingModeRequested;
 
         [SerializeField] private PrologueUIReferences ui;
         [Header("Streaming text")]
@@ -33,6 +35,13 @@ namespace GhostCounselor
         private Coroutine typeRoutine;
         private bool isTyping;
         private bool isClosing;
+        private bool isEnding;
+
+        public static void RequestEnding()
+        {
+            endingModeRequested = true;
+            PrologueScreenFade.FadeFromBlackAndLoadScene("PrologueScene", 0.18f, 1.15f);
+        }
 
         private void Awake()
         {
@@ -52,14 +61,22 @@ namespace GhostCounselor
                 ui.gameCamera.enabled = true;
             ui.prologueCamera.enabled = true;
 
-            TextAsset story = Resources.Load<TextAsset>(StoryResourcePath);
-            storyParagraphs = story != null
-                ? story.text.Replace("\r", string.Empty).Trim()
-                    .Split(new[] { "\n\n" }, System.StringSplitOptions.RemoveEmptyEntries)
-                    .Select(paragraph => paragraph.Trim())
-                    .Where(paragraph => !string.IsNullOrWhiteSpace(paragraph))
-                    .ToArray()
-                : new[] { "프롤로그 원고를 불러오지 못했습니다." };
+            isEnding = endingModeRequested;
+            if (isEnding)
+            {
+                storyParagraphs = BuildEndingParagraphs();
+            }
+            else
+            {
+                TextAsset story = Resources.Load<TextAsset>(StoryResourcePath);
+                storyParagraphs = story != null
+                    ? story.text.Replace("\r", string.Empty).Trim()
+                        .Split(new[] { "\n\n" }, System.StringSplitOptions.RemoveEmptyEntries)
+                        .Select(paragraph => paragraph.Trim())
+                        .Where(paragraph => !string.IsNullOrWhiteSpace(paragraph))
+                        .ToArray()
+                    : new[] { "프롤로그 원고를 불러오지 못했습니다." };
+            }
 
             storyColor = ui.storyText.color;
             ui.continueButton.onClick.RemoveAllListeners();
@@ -95,11 +112,14 @@ namespace GhostCounselor
         private void ShowCurrentLine()
         {
             bool isFinalParagraph = paragraphIndex == storyParagraphs.Length - 1;
+            bool isEndingCredits = isEnding && isFinalParagraph;
             currentParagraph = storyParagraphs[paragraphIndex];
             ui.storyText.text = string.Empty;
             ui.storyText.alignment = TextAnchor.MiddleCenter;
-            ui.storyText.fontSize = isFinalParagraph ? 44 : 31;
-            ui.continueButtonText.text = isFinalParagraph ? "시작하기" : "다음  >";
+            ui.storyText.fontSize = isEndingCredits ? 25 : isFinalParagraph ? 44 : 31;
+            ui.continueButtonText.text = isFinalParagraph
+                ? (isEnding ? "처음부터 다시" : "시작하기")
+                : "다음  >";
 
             if (typeRoutine != null)
                 StopCoroutine(typeRoutine);
@@ -143,12 +163,48 @@ namespace GhostCounselor
                 return;
 
             isClosing = true;
+            if (isEnding)
+            {
+                endingModeRequested = false;
+                GhostSaveSystem.Delete();
+                PrologueScreenFade.FadeFromBlackAndLoadScene("PrologueScene", blackHoldDuration, revealDuration);
+                return;
+            }
+
             PrologueScreenFade.FadeFromBlackAndLoadScene("GameScene", blackHoldDuration, revealDuration);
         }
 
         private void SkipPrologue()
         {
             ClosePrologue();
+        }
+
+        private static string[] BuildEndingParagraphs()
+        {
+            SaveData save = GhostSaveSystem.Load();
+            int totalReceived = (save.ledgerRecords ?? new System.Collections.Generic.List<LedgerRecord>())
+                .Sum(record => record.money);
+            int counselCount = save.ledgerRecords?.Count ?? 0;
+            int purifiedCount = save.ghosts?.Count(progress => progress.purified) ?? 0;
+            int specialCount = save.ghosts?.Count(progress => progress.specialSolved) ?? 0;
+
+            return new[]
+            {
+                "일주일 동안의 귀신 상담소가 끝났다…",
+                "정말 다행히도 잔금과 빚을 모두 갚았다.\n신당을 지킬 수 있게 되었다.",
+                "처음에는 귀신들이 무섭기만 했다.\n하지만 이야기를 나눌수록, 귀신들에게도 각자의 아픔과 고통이 있다는 걸 알게 되었다.",
+                "그들의 마지막 이야기를 들어주고 성불을 배웅할 수 있어서 뿌듯했다.\n앞으로도 이곳에서 귀신 상담소를 계속해 나가기로 했다.",
+                "플레이해 주셔서 감사합니다.",
+                $"— 플레이 기록 —\n\n플레이 시간  {FormatPlayTime(save.elapsedPlaySeconds)}\n상담 횟수  {counselCount}회\n귀신 성불  {purifiedCount}/5명\n귀신에게 받은 돈  {totalReceived:N0}원\n특별 해결  {specialCount}건\n\n귀신 상담소 제작진"
+            };
+        }
+
+        private static string FormatPlayTime(float seconds)
+        {
+            int totalSeconds = Mathf.Max(0, Mathf.RoundToInt(seconds));
+            int minutes = totalSeconds / 60;
+            int remainingSeconds = totalSeconds % 60;
+            return $"{minutes:00}분 {remainingSeconds:00}초";
         }
     }
 }

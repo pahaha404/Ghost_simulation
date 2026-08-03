@@ -64,9 +64,16 @@
 
 ## 커밋 기록
 
+### 2026-08-03 — 결말 화면과 플레이 기록 연결
+
+- 커밋: 다음 항목에서 기록 — feat: 결말 화면과 플레이 기록 추가
+- 바뀐 점: 최종 결산을 프롤로그 형식의 결말 화면으로 전환하고, 상담 횟수·성불 수·복비·특별 해결·플레이 시간을 보여 준다.
+- 주요 파일: Assets/GhostCounselor/Scripts/PrologueController.cs, GhostGameController.cs — 결말 전환과 화면 원고를 담당한다.
+- 확인: 정적 컴파일 성공. Unity Play Mode 전환은 아직 확인 필요.
+
 ### 2026-08-03 — 본편 5인 연속 상담 진행 로직 반영
 
-- 커밋: 다음 항목에서 기록 — feat: 본편 귀신 5인 연속 상담 진행 적용
+- 커밋: 4429c1c — feat: 본편 귀신 5인 연속 상담 진행 적용
 - 바뀐 점: 다섯 귀신의 4회차 상담 원고를 게임 데이터로 연결했다. 해결한 상담만 다음 회차로 진행하며, 마지막 회차 해결 뒤에는 성불 대사와 시네마틱 요약이 안내 모달로 표시된다.
 - 주요 파일: Assets/GhostCounselor/Scripts/GhostStoryContentLibrary.cs, GhostGameController.cs, GhostGameModels.cs — 회차 원고, 진행 저장, 화면 흐름을 담당한다.
 - 확인: dotnet build Ghost.slnx --no-restore 성공(경고 0, 오류 0). Unity 재임포트와 Play Mode 전체 흐름은 아직 확인 필요다.
