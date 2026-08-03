@@ -10,8 +10,10 @@
  * 이 스크립트는 위치를 바꾸지 않고, 표시/숨김과 눌림 효과만 담당합니다.
  */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.UI;
@@ -48,6 +50,7 @@ namespace GhostCounselor
         private readonly Dictionary<Image, Color> keyBaseColors = new();
         private readonly Dictionary<Key, float> pressedUntil = new();
         private Action submitted;
+        private Coroutine delayedFocusRoutine;
 
         public bool IsConfigured => typewriterRoot != null && guideText != null && inputField != null && enterLamp != null;
         public bool IsShowing => typewriterRoot != null && typewriterRoot.activeSelf;
@@ -100,18 +103,45 @@ namespace GhostCounselor
             inputField.text = string.Empty;
             RefreshEnterLamp(inputField.text);
             inputField.ForceLabelUpdate();
-            inputField.ActivateInputField();
-            inputField.Select();
+            FocusInputField();
+            if (delayedFocusRoutine != null)
+                StopCoroutine(delayedFocusRoutine);
+            delayedFocusRoutine = StartCoroutine(RefocusInputNextFrame());
             return inputField;
         }
 
         public void Hide()
         {
+            if (delayedFocusRoutine != null)
+            {
+                StopCoroutine(delayedFocusRoutine);
+                delayedFocusRoutine = null;
+            }
             submitted = null;
             pressedUntil.Clear();
             RefreshKeyVisuals();
             if (typewriterRoot != null)
                 typewriterRoot.SetActive(false);
+        }
+
+        private IEnumerator RefocusInputNextFrame()
+        {
+            // 버튼 클릭으로 전환한 프레임에는 EventSystem이 이전 버튼을 다시 선택할 수 있다.
+            // 다음 프레임에 한 번 더 포커스를 주면 마우스 클릭 없이 바로 타이핑할 수 있다.
+            yield return null;
+            delayedFocusRoutine = null;
+            if (IsShowing)
+                FocusInputField();
+        }
+
+        private void FocusInputField()
+        {
+            if (inputField == null || !inputField.gameObject.activeInHierarchy)
+                return;
+
+            EventSystem.current?.SetSelectedGameObject(inputField.gameObject);
+            inputField.Select();
+            inputField.ActivateInputField();
         }
 
         private void Update()
