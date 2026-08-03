@@ -121,11 +121,11 @@ namespace GhostCounselor.Editor
             SetRect(ui.timerText.rectTransform, 700f, 92f, 130f, 70f);
 
             ui.actionArea = EmptyRect("Actions - Runtime Buttons", ui.root);
-            SetRect(ui.actionArea, 20f, 22f, 360f, 205f);
+            SetRect(ui.actionArea, 20f, 22f, 360f, 340f);
             VerticalLayoutGroup actionsLayout = ui.actionArea.gameObject.AddComponent<VerticalLayoutGroup>();
             actionsLayout.spacing = 10f;
-            actionsLayout.childAlignment = TextAnchor.LowerLeft;
-            actionsLayout.childControlWidth = false;
+            actionsLayout.childAlignment = TextAnchor.UpperLeft;
+            actionsLayout.childControlWidth = true;
             actionsLayout.childControlHeight = false;
             actionsLayout.childForceExpandWidth = false;
             actionsLayout.childForceExpandHeight = false;
@@ -185,7 +185,7 @@ namespace GhostCounselor.Editor
             ui.timerText.transform.SetParent(root, false);
             ui.timerText.transform.SetAsLastSibling();
             SetRect(ui.timerText.rectTransform, 700f, 92f, 130f, 70f);
-            SetRect(ui.actionArea, 20f, 22f, 360f, 205f);
+            SetRect(ui.actionArea, 20f, 22f, 360f, 340f);
             ReplaceWithVerticalLayout(ui.actionArea);
 
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
@@ -288,8 +288,8 @@ namespace GhostCounselor.Editor
             if (layout == null)
                 layout = Undo.AddComponent<VerticalLayoutGroup>(actionArea.gameObject);
             layout.spacing = 10f;
-            layout.childAlignment = TextAnchor.LowerLeft;
-            layout.childControlWidth = false;
+            layout.childAlignment = TextAnchor.UpperLeft;
+            layout.childControlWidth = true;
             layout.childControlHeight = false;
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;

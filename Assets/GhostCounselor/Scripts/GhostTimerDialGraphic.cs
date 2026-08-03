@@ -39,14 +39,16 @@ namespace GhostCounselor
                     AddArc(vh, center, radius * 0.72f, radius * 0.76f, 0f, 360f, 64, new Color(0.27f, 0.12f, 0.08f, 1f));
                     break;
                 case DialPart.RemainingWedge:
-                    if (remaining > 0.001f)
-                        AddWedge(vh, center, radius * 0.70f, -90f, 360f * remaining, Mathf.Max(4, Mathf.CeilToInt(48f * remaining)), color);
+                    // The white clock face starts empty. From 12 o'clock, the red area
+                    // follows the hand clockwise and grows as the answer time passes.
+                    if (elapsed > 0.001f)
+                        AddWedge(vh, center, radius * 0.70f, 90f, -360f * elapsed, Mathf.Max(4, Mathf.CeilToInt(48f * elapsed)), color);
                     break;
                 case DialPart.Ticks:
                     AddTicks(vh, center, radius * 0.77f, radius * 0.64f, 12, color);
                     break;
                 case DialPart.Hand:
-                    AddHand(vh, center, radius * 0.52f, elapsed * 360f - 90f, color);
+                    AddHand(vh, center, radius * 0.52f, 90f - elapsed * 360f, color);
                     AddDisc(vh, center, radius * 0.09f, 16, color);
                     break;
             }

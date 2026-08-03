@@ -394,7 +394,6 @@ namespace GhostCounselor
             ClearActions();
             ledger?.ShowDayStart(save.money, PrototypeDays - save.day + 1);
             AddButton("신당 문 열기", BeginVisit, accent);
-            AddButton("저장 후 제목으로", SaveAndTitle, spirit);
         }
 
         private void BeginVisit()
@@ -728,12 +727,6 @@ namespace GhostCounselor
                 save.achievements.Add(achievement);
         }
 
-        private void SaveAndTitle()
-        {
-            GhostSaveSystem.Save(save);
-            ShowTitle();
-        }
-
         private void UpdateTopBar(string phaseName)
         {
             int day = save?.day ?? 1;
@@ -916,6 +909,7 @@ namespace GhostCounselor
 
                 Text templateLabel = templateButton.GetComponentInChildren<Text>(true);
                 templateLabel.text = text;
+                PositionActionAreaBelowDialogue(actionArea.childCount);
                 if (selectedActionButton == null)
                     SelectActionButton(templateButton);
                 return;
@@ -947,6 +941,40 @@ namespace GhostCounselor
             Navigation navigation = button.navigation;
             navigation.mode = Navigation.Mode.None;
             button.navigation = navigation;
+        }
+
+        private void PositionActionAreaBelowDialogue(int buttonCount)
+        {
+            if (actionArea == null || dialogueText == null || actionArea.parent is not RectTransform parent)
+                return;
+
+            Canvas.ForceUpdateCanvases();
+            Vector3[] corners = new Vector3[4];
+            dialogueText.rectTransform.GetWorldCorners(corners);
+            Vector3 bottomLeft = parent.InverseTransformPoint(corners[0]);
+            Vector3 topRight = parent.InverseTransformPoint(corners[2]);
+
+            // Convert the parent's centered local coordinate into its bottom-left
+            // anchored coordinate. The action area's top then begins just beneath Dialogue.
+            float x = bottomLeft.x + parent.rect.width * parent.pivot.x;
+            float y = bottomLeft.y + parent.rect.height * parent.pivot.y - 8f;
+            float width = Mathf.Max(1f, topRight.x - bottomLeft.x);
+            float height = Mathf.Max(70f, buttonCount * 70f + Mathf.Max(0, buttonCount - 1) * 8f);
+
+            actionArea.anchorMin = Vector2.zero;
+            actionArea.anchorMax = Vector2.zero;
+            actionArea.pivot = new Vector2(0f, 1f);
+            actionArea.anchoredPosition = new Vector2(x, y);
+            actionArea.sizeDelta = new Vector2(width, height);
+
+            VerticalLayoutGroup layout = actionArea.GetComponent<VerticalLayoutGroup>();
+            if (layout != null)
+            {
+                layout.childAlignment = TextAnchor.UpperLeft;
+                layout.spacing = 8f;
+                layout.childControlWidth = true;
+                layout.childForceExpandWidth = true;
+            }
         }
 
         private InputField CreateInput(Transform parent, string placeholder)

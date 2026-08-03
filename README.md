@@ -6,14 +6,14 @@
 
 ## 프로젝트 열기
 
-Unity 프로젝트는 [`Ghost`](Ghost/) 폴더에 있습니다. Unity Hub에서 `Ghost` 폴더를 프로젝트로 열어 주세요.
+Unity 프로젝트는 이 저장소의 최상위 폴더입니다. Unity Hub에서 이 폴더를 프로젝트로 열어 주세요.
 
 ## 문서
 
-- [기획 문서 색인](Ghost/Docs/README.md)
-- [게임 스토리](Ghost/Docs/Story/00-게임-스토리.md)
-- [연속 상담 귀신 스토리](Ghost/Docs/Story/02-귀신-연속-상담-스토리.md)
-- [개발 인수인계](Ghost/Docs/프로젝트-핸드오프.md)
+- [기획 문서 색인](Docs/README.md)
+- [게임 스토리](Docs/Story/00-게임-스토리.md)
+- [연속 상담 귀신 스토리](Docs/Story/02-귀신-연속-상담-스토리.md)
+- [개발 인수인계](Docs/프로젝트-핸드오프.md)
 
 ## 현재 프로토타입
 
