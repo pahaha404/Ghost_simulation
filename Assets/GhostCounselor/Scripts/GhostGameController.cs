@@ -551,19 +551,26 @@ namespace GhostCounselor
             phase = GamePhase.Result;
             typewriterAnswerUi?.Hide();
             ResetPortraitPositions();
-            CounselResult result = Evaluate(intent);
+            CounselResult result = Evaluate(answer, intent);
             ApplyResult(result, answer);
             ShowResult(result);
         }
 
-        private CounselResult Evaluate(AnswerIntent intent)
+        private CounselResult Evaluate(string answer, AnswerIntent intent)
         {
+            AnswerIntent preferred = currentStoryVisit?.preferredIntent ?? currentGhost.preferredIntent;
+            bool containsUnderstand = !string.IsNullOrWhiteSpace(answer) && answer.Contains("이해");
+            if (containsUnderstand)
+            {
+                intent = preferred;
+            }
+
             CounselOutcome outcome;
-            if (intent is AnswerIntent.Timeout or AnswerIntent.OffTopic or AnswerIntent.Aggression)
+            if (!containsUnderstand && intent is AnswerIntent.Timeout or AnswerIntent.OffTopic or AnswerIntent.Aggression)
                 outcome = CounselOutcome.Unresolved;
-            else if (intent == AnswerIntent.Avoidance)
+            else if (!containsUnderstand && intent == AnswerIntent.Avoidance)
                 outcome = CounselOutcome.Partial;
-            else if (intent == (currentStoryVisit?.preferredIntent ?? currentGhost.preferredIntent) && askedQuestions >= 2)
+            else if ((intent == preferred || containsUnderstand) && askedQuestions >= 2)
                 outcome = CounselOutcome.SpecialSolved;
             else
                 outcome = CounselOutcome.Solved;
@@ -688,6 +695,15 @@ namespace GhostCounselor
             if (currentStoryVisit == null)
             {
                 ShowRewardNotice(result);
+                return;
+            }
+
+            // 영상이 등록되어 있으면 기존 텍스트 결말 대신 전체화면 시네마틱을 재생합니다.
+            // 영상 파일이 없거나 아직 카탈로그를 만들지 않았다면 기존 결말 UI로 안전하게 진행합니다.
+            if (GhostCinematicPlayer.TryPlay(currentStoryVisit.cinematicId, () => ShowRewardNotice(result)))
+            {
+                currentProgress.cinematicSeen = true;
+                GhostSaveSystem.Save(save);
                 return;
             }
 
