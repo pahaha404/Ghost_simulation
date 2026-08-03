@@ -66,7 +66,7 @@
 
 ### 2026-08-03 — 결말 화면과 플레이 기록 연결
 
-- 커밋: 다음 항목에서 기록 — feat: 결말 화면과 플레이 기록 추가
+- 커밋: 8810c11 — feat: 결말 화면과 플레이 기록 추가
 - 바뀐 점: 최종 결산을 프롤로그 형식의 결말 화면으로 전환하고, 상담 횟수·성불 수·복비·특별 해결·플레이 시간을 보여 준다.
 - 주요 파일: Assets/GhostCounselor/Scripts/PrologueController.cs, GhostGameController.cs — 결말 전환과 화면 원고를 담당한다.
 - 확인: 정적 컴파일 성공. Unity Play Mode 전환은 아직 확인 필요.
