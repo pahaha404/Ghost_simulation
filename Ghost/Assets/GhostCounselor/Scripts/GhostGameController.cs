@@ -40,8 +40,6 @@ namespace GhostCounselor
         private readonly Color paperDark = Hex("D9C7A5");
         private readonly Color accent = Hex("A9403A");
         private readonly Color spirit = Hex("59786F");
-        private readonly Color choiceFocus = Hex("D6AE5D");
-        private readonly Color choicePressed = Hex("BD8430");
 
         private IReadOnlyList<GhostDefinition> ghosts;
         private IIntentClassifier classifier;
@@ -907,7 +905,6 @@ namespace GhostCounselor
                 templateButton.onClick.RemoveAllListeners();
                 templateButton.onClick.AddListener(() => action());
                 DisableBuiltInNavigation(templateButton);
-                ConfigureChoiceFeedback(templateButton);
 
                 // The scene template owns the visual style.  In the authored UI every
                 // selectable answer is a thin cream card; `color` remains for the
@@ -935,7 +932,6 @@ namespace GhostCounselor
             SetRect(button.GetComponent<RectTransform>(), x, 5f, width, 70f);
             button.onClick.AddListener(() => action());
             DisableBuiltInNavigation(button);
-            ConfigureChoiceFeedback(button);
 
             Text label = Label("Label", button.transform, text, 19, paper, TextAnchor.MiddleCenter);
             label.resizeTextForBestFit = true;
@@ -951,26 +947,6 @@ namespace GhostCounselor
             Navigation navigation = button.navigation;
             navigation.mode = Navigation.Mode.None;
             button.navigation = navigation;
-        }
-
-        private void ConfigureChoiceFeedback(Button button)
-        {
-            ColorBlock colors = button.colors;
-            colors.highlightedColor = choiceFocus;
-            colors.selectedColor = choiceFocus;
-            colors.pressedColor = choicePressed;
-            colors.colorMultiplier = 1f;
-            button.colors = colors;
-
-            Shadow shadow = button.GetComponent<Shadow>();
-            if (shadow == null)
-                shadow = button.gameObject.AddComponent<Shadow>();
-            shadow.effectColor = new Color(0.18f, 0.08f, 0.07f, 0.72f);
-            shadow.effectDistance = new Vector2(0f, -6f);
-            shadow.useGraphicAlpha = false;
-
-            if (button.GetComponent<GhostChoiceButtonFeedback>() == null)
-                button.gameObject.AddComponent<GhostChoiceButtonFeedback>();
         }
 
         private InputField CreateInput(Transform parent, string placeholder)
