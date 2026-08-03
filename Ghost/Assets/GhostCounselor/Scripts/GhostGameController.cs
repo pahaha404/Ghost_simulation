@@ -66,8 +66,7 @@ namespace GhostCounselor
         private Text timerText;
         private RectTransform content;
         private RectTransform actionArea;
-        private Image ledgerPanel;
-        private Text ledgerText;
+        private GhostLedgerPresenter ledger;
         private Image portraitPanel;
         private InputField answerInput;
         private GhostCounselorUIReferences editableUi;
@@ -205,8 +204,7 @@ namespace GhostCounselor
             dialogueText = ui.dialogueText;
             timerText = ui.timerText;
             actionArea = ui.actionArea;
-            ledgerPanel = ui.ledgerPanel;
-            ledgerText = ui.ledgerText;
+            ledger = new GhostLedgerPresenter(ui.ledgerPanel, ui.ledgerText);
             portraitHomePosition = portraitPanel.rectTransform.anchoredPosition;
             portraitImageHomePosition = portraitImage != null
                 ? portraitImage.rectTransform.anchoredPosition
@@ -274,10 +272,9 @@ namespace GhostCounselor
             nameText.text = $"영업 {save.day}일 차";
             titleText.text = "오늘도 신당 앞에 서늘한 기척이 느껴진다";
             dialogueText.text =
-                $"현재 보유금: {save.money:N0}원\n" +
-                $"남은 영업일: {PrototypeDays - save.day + 1}일\n\n" +
                 "문을 열면 오늘의 손님 한 명이 들어옵니다.";
             ClearActions();
+            ledger?.ShowDayStart(save.money, PrototypeDays - save.day + 1);
             AddButton("신당 문 열기", BeginVisit, accent);
             AddButton("저장 후 제목으로", SaveAndTitle, spirit);
         }
@@ -472,10 +469,10 @@ namespace GhostCounselor
             SetPortraitRootTransparent();
             nameText.text = OutcomeName(result.outcome);
             titleText.text = $"{IntentName(result.intent)}으로 받아들였습니다";
-            dialogueText.text = $"{currentGhost.displayName}: “{result.reaction}”\n\n오늘의 상담 결과가 장부에 기록됐다.";
+            dialogueText.text = $"{currentGhost.displayName}: “{result.reaction}”";
             timerText.text = "";
             ClearActions();
-            ShowLedger(result);
+            ledger?.ShowCounselResult(result);
             AddButton("밤 정산", ShowNight, accent);
         }
 
@@ -486,12 +483,14 @@ namespace GhostCounselor
             ResetPortrait();
             nameText.text = $"{save.day}일 차 영업 종료";
             titleText.text = "신당 장부에 오늘의 상담을 기록했다";
-            dialogueText.text =
-                $"누적 보유금: {save.money:N0}원\n" +
-                $"만난 귀신: {save.ghosts.Count(progress => progress.visitCount > 0)}/{ghosts.Count}\n" +
-                $"특별 해결: {save.ghosts.Count(progress => progress.specialSolved)}건\n" +
-                $"업적: {save.achievements.Count}개";
+            dialogueText.text = "";
             ClearActions();
+            ledger?.ShowNight(
+                save.money,
+                save.ghosts.Count(progress => progress.visitCount > 0),
+                ghosts.Count,
+                save.ghosts.Count(progress => progress.specialSolved),
+                save.achievements.Count);
 
             if (save.day >= PrototypeDays)
                 AddButton("7일 결산 보기", FinishCampaign, accent);
@@ -706,35 +705,13 @@ namespace GhostCounselor
         private void ClearActions()
         {
             answerInput = null;
-            HideLedger();
+            ledger?.Hide();
             for (int index = actionArea.childCount - 1; index >= 0; index--)
             {
                 Transform child = actionArea.GetChild(index);
                 child.SetParent(null, false);
                 Destroy(child.gameObject);
             }
-        }
-
-        private void ShowLedger(CounselResult result)
-        {
-            if (ledgerPanel == null || ledgerText == null)
-                return;
-
-            ledgerPanel.gameObject.SetActive(true);
-            ledgerText.text =
-                $"기본 사례비   {result.basePay:N0}원\n" +
-                $"상담 보너스   {result.bonusPay:N0}원\n" +
-                (result.itemPay > 0
-                    ? $"물건 환전     {result.itemPay:N0}원\n"
-                    : "물건 환전     -\n") +
-                "────────────\n" +
-                $"오늘 수입     {result.TotalPay:N0}원";
-        }
-
-        private void HideLedger()
-        {
-            if (ledgerPanel != null)
-                ledgerPanel.gameObject.SetActive(false);
         }
 
         private void AddButton(string text, Action action, Color color, float x = -1f, float width = 250f)

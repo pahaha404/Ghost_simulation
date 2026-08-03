@@ -52,7 +52,7 @@ namespace GhostCounselor
         public RectTransform actionArea;
 
         [Header("Outcome ledger")]
-        [Tooltip("상담 결과 때만 오른쪽에 표시할 공책형 장부 패널입니다.")]
+        [Tooltip("아침, 상담 결과, 밤 결산에 표시할 오른쪽 공책형 장부 패널입니다.")]
         public Image ledgerPanel;
         public Text ledgerText;
 
