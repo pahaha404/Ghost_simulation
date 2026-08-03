@@ -66,7 +66,7 @@
 
 ### 2026-08-03 — 복주머니 특별 보상 인벤토리 추가
 
-- 커밋: 다음 항목에서 기록 — `feat: 복주머니 특별 보상 인벤토리 추가`
+- 커밋: `d427b01` — `feat: 복주머니 특별 보상 인벤토리 추가`
 - 바뀐 점: 우측 하단 복주머니를 눌러 특별 보상 물건을 확인하는 인벤토리 UI 생성 도구를 추가했다. 현재 저장 데이터의 `items` 목록을 그대로 표시하고, 획득 개수 배지를 보여 준다.
 - 주요 파일: `Assets/Art/UI/bokjumeoni_inventory_v1.png` — 투명 배경 픽셀 복주머니 아이콘이다.
 - 주요 파일: `Assets/GhostCounselor/Scripts/GhostBokjumeoniInventoryUI.cs`, `BokjumeoniInventoryUIBuilder.cs` — 보관함 동작과 편집 가능한 GameScene UI 생성 메뉴를 담당한다.
