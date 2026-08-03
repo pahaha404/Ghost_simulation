@@ -1,3 +1,11 @@
+/*
+ * 파일 역할: 플레이어 답변을 게임에서 허용한 의도 enum으로만 분류한다.
+ * - IIntentClassifier: 나중에 외부 AI를 연결해도 지켜야 하는 분류 인터페이스다.
+ * - LocalIntentClassifier: 서버 없이 실행되는 오프라인 분류기다.
+ * - Classify(): 빈 답변은 시간 초과, 짧은 답변은 문맥 이탈로 처리한다.
+ * - Score()/LooksContextual(): 공감/조언/회피/공격 단어를 비교해 가장 높은 의도를 고른다.
+ * AI가 대사나 보상을 만들지 않고 GhostGameController가 사용할 판정값만 반환한다.
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;

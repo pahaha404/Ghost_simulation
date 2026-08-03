@@ -1,3 +1,12 @@
+/*
+ * 파일 역할: GameScene에서 직접 배치한 상담 UI를 코드에 연결한다.
+ * - GhostPortraitSet: 귀신 ID별 기본 초상화와 질문 선택 시 표정 순서를 보관한다.
+ * - GhostCounselorUIReferences: Canvas, 대화 카드, 이름/대사 텍스트, 버튼,
+ *   초상화, 타이머, 장부 패널 등의 Inspector 참조를 보관한다.
+ * - IsConfigured(): 필수 UI 연결이 모두 되어 있는지 검사한다.
+ * - ApplyRuntimeFont(): 연결된 UI Text에 런타임 글꼴을 적용한다.
+ * 레이아웃은 코드에서 새로 만들지 않고 Unity Scene에서 수정하는 구조다.
+ */
 using System;
 using UnityEngine;
 using UnityEngine.UI;

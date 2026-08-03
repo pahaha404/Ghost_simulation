@@ -1,3 +1,11 @@
+/*
+ * 파일 역할: PrologueScene의 프롤로그 진행과 타이핑 연출을 담당한다.
+ * - Awake(): UI 참조를 확인하고 Resources/Stories/Prologue 원고를 읽는다.
+ * - ShowCurrentLine(): 현재 문단과 버튼 문구를 화면에 준비한다.
+ * - TypeCurrentLine(): 글자를 한 자씩 출력하고 문장부호에서 잠시 멈춘다.
+ * - ShowNextLine(): 타이핑 중이면 즉시 완성하고, 다음 문단 또는 GameScene으로 이동한다.
+ * - SkipPrologue(): 프롤로그를 건너뛰고 화면 전환 후 GameScene을 연다.
+ */
 using System.Collections;
 using System.Linq;
 using UnityEngine;

@@ -1,3 +1,13 @@
+/*
+ * 파일 역할: GameScene에서 상담 게임의 전체 진행을 제어하는 중심 MonoBehaviour다.
+ * - Bootstrap()/CreateForGameScene(): GameScene이 열릴 때 컨트롤러를 한 번 생성한다.
+ * - Awake(): 귀신 콘텐츠, 저장 데이터, 의도 분류기와 Scene UI를 연결한다.
+ * - Update(): 핵심 답변 10초 타이머, 5초 경고 표정, 초상화 흔들림을 처리한다.
+ * - 질문/답변 처리: 선택지 또는 자연어 답변을 받아 AnswerIntent로 분류한다.
+ * - 결과 처리: 상담 결과, 사례비, 보너스, 물건, 관계 변화를 계산한다.
+ * - UI 갱신: 현재 날짜, 단계, 대사, 초상화, 선택지, 결과 장부를 표시한다.
+ * GameScene의 배경과 수동 배치 UI는 유지하고 연결된 UI의 내용과 상태만 갱신한다.
+ */
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,8 +26,10 @@ namespace GhostCounselor
 
         private static readonly string[] TitlePages =
         {
-            "폐업까지 남은 시간은 단 7일.\n불행인지 다행인지 마지못해 상담해 준 귀신이 홍보 역할을 톡톡히 했나 보다.",
-            "자기 얘기 좀 들어 달라고 몰려드는 귀신들. 상담을 잘하면 돈도 벌고, 귀신과 친해지면 특별한 보상도 얻는다.",
+            "폐업까지 남은 시간, 단 7일.",
+            "불행인지 다행인지 마지못해 상담해 준 귀신이 홍보 역할을 톡톡히 했나 보다.",
+            "자기 얘기 좀 들어 달라고 몰려드는 귀신들 때문에 아주 난리도 아니야~",
+            "상담을 잘하면 돈도 벌고, 귀신과 친해지면 특별한 보상도 얻는다.",
             "하지만 상담을 잘못하면 귀신이 화를 내고, 저주를 내리고 신당의 평판이 떨어진다.",
             "하루 한 명의 귀신을 상담하고 일주일 동안 신당의 월세와 빚을 갚아 보자."
         };
@@ -201,7 +213,7 @@ namespace GhostCounselor
             phase = GamePhase.DayStart;
             UpdateTopBar("문을 열기 전");
             nameText.text = "귀신 상담소";
-            titleText.text = "7일 영업 프로토타입";
+            titleText.text = "튜토리얼";
             HidePortrait();
             SetPortraitRootTransparent();
             titlePage = 0;
