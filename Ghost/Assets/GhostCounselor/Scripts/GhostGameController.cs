@@ -70,6 +70,7 @@ namespace GhostCounselor
         private Image portraitPanel;
         private InputField answerInput;
         private GhostCounselorUIReferences editableUi;
+        private GhostInnerThoughtModal innerThoughtModal;
         // Captured from the scene-authored Canvas so designer placement survives runtime state changes.
         private Vector2 portraitHomePosition;
         // The visible face image has its own editable position inside Portrait Root.
@@ -205,6 +206,7 @@ namespace GhostCounselor
             timerText = ui.timerText;
             actionArea = ui.actionArea;
             ledger = new GhostLedgerPresenter(ui.ledgerPanel, ui.ledgerText);
+            innerThoughtModal = ui.GetComponent<GhostInnerThoughtModal>();
             portraitHomePosition = portraitPanel.rectTransform.anchoredPosition;
             portraitImageHomePosition = portraitImage != null
                 ? portraitImage.rectTransform.anchoredPosition
@@ -269,10 +271,20 @@ namespace GhostCounselor
             phase = GamePhase.DayStart;
             UpdateTopBar("아침 · 영업 준비");
             ResetPortrait();
-            nameText.text = $"영업 {save.day}일 차";
-            titleText.text = "오늘도 신당 앞에 서늘한 기척이 느껴진다";
-            dialogueText.text =
-                "문을 열면 오늘의 손님 한 명이 들어옵니다.";
+            ClearActions();
+
+            string message =
+                $"영업 {save.day}일 차\n\n" +
+                "오늘도 신당 앞에\n서늘한 기척이 느껴진다.";
+            if (!ShowInnerThought(message, "영업 시작", ShowDayStartDetails))
+                ShowDayStartDetails();
+        }
+
+        private void ShowDayStartDetails()
+        {
+            nameText.text = "귀신 상담소";
+            titleText.text = "오늘의 영업 준비";
+            dialogueText.text = "문을 열면 오늘의 손님 한 명이 들어옵니다.";
             ClearActions();
             ledger?.ShowDayStart(save.money, PrototypeDays - save.day + 1);
             AddButton("신당 문 열기", BeginVisit, accent);
@@ -467,13 +479,30 @@ namespace GhostCounselor
             if (!UsesGhostPortrait())
                 HidePortrait();
             SetPortraitRootTransparent();
-            nameText.text = OutcomeName(result.outcome);
-            titleText.text = $"{IntentName(result.intent)}으로 받아들였습니다";
-            dialogueText.text = $"{currentGhost.displayName}: “{result.reaction}”";
+            nameText.text = currentGhost.displayName;
+            titleText.text = $"{OutcomeName(result.outcome)} · {IntentName(result.intent)}으로 받아들였습니다";
+            dialogueText.text = $"“{result.reaction}”";
             timerText.text = "";
             ClearActions();
             ledger?.ShowCounselResult(result);
-            AddButton("밤 정산", ShowNight, accent);
+            AddButton("다음", () => ShowRewardNotice(result), accent);
+        }
+
+        private void ShowRewardNotice(CounselResult result)
+        {
+            ClearActions();
+            string payer = $"{currentGhost.displayName}{SubjectParticle(currentGhost.displayName)}";
+            string message = !string.IsNullOrEmpty(result.itemName)
+                ? $"{payer}\n{result.itemName}을 주고 갔습니다."
+                : $"{payer}\n{result.TotalPay:N0}원을 복비로 주고 갔습니다.";
+
+            if (!ShowInnerThought(message, "밤 정산", ShowNight))
+            {
+                nameText.text = currentGhost.displayName;
+                titleText.text = "상담 보상";
+                dialogueText.text = message;
+                AddButton("밤 정산", ShowNight, accent);
+            }
         }
 
         private void ShowNight()
@@ -481,8 +510,19 @@ namespace GhostCounselor
             phase = GamePhase.Night;
             UpdateTopBar("밤 · 장부 정리");
             ResetPortrait();
-            nameText.text = $"{save.day}일 차 영업 종료";
-            titleText.text = "신당 장부에 오늘의 상담을 기록했다";
+            ClearActions();
+
+            string message =
+                $"{save.day}일 차 영업 종료\n\n" +
+                "오늘의 상담을\n장부에 정리합니다.";
+            if (!ShowInnerThought(message, "장부 확인", ShowNightDetails))
+                ShowNightDetails();
+        }
+
+        private void ShowNightDetails()
+        {
+            nameText.text = "귀신 상담소";
+            titleText.text = "오늘의 장부";
             dialogueText.text = "";
             ClearActions();
             ledger?.ShowNight(
@@ -589,6 +629,28 @@ namespace GhostCounselor
             moneyText.text = $"{money:N0}원";
             if (phaseText != null)
                 phaseText.text = phaseName;
+        }
+
+        private bool ShowInnerThought(string message, string confirmLabel, Action confirmedAction)
+        {
+            if (innerThoughtModal == null)
+                innerThoughtModal = FindAnyObjectByType<GhostInnerThoughtModal>();
+            if (innerThoughtModal == null)
+                return false;
+
+            innerThoughtModal.Show(message, confirmLabel, confirmedAction);
+            return true;
+        }
+
+        private static string SubjectParticle(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return "이";
+
+            char lastCharacter = name[name.Length - 1];
+            int hangulOffset = lastCharacter - 0xAC00;
+            bool hasFinalConsonant = hangulOffset >= 0 && hangulOffset <= 11171 && hangulOffset % 28 != 0;
+            return hasFinalConsonant ? "이" : "가";
         }
 
         private void ResetPortrait()
