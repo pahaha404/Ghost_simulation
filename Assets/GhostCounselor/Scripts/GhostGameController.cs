@@ -50,6 +50,10 @@ namespace GhostCounselor
         private SaveData save;
         private GhostDefinition currentGhost;
         private GhostProgress currentProgress;
+        // 현재 상담에 표시하는 고정 원고다. 상담 결과가 나온 뒤에도 후속 행동/성불 연출에 사용한다.
+        private GhostStoryVisitData currentStoryVisit;
+        private bool currentVisitCompleted;
+        private bool currentVisitPurified;
         private GamePhase phase;
         private int askedQuestions;
         private int titlePage;
@@ -418,15 +422,23 @@ namespace GhostCounselor
             EnsureDailyCounselState();
             currentGhost = PickGhost();
             currentProgress = GetProgress(currentGhost.id);
+            currentStoryVisit = GetCurrentStoryVisit(currentGhost, currentProgress);
+            currentVisitCompleted = false;
+            currentVisitPurified = false;
             phase = GamePhase.Visit;
             UpdateTopBar("손님 방문");
             nameText.text = currentGhost.displayName;
-            titleText.text = currentGhost.title;
+            titleText.text = currentStoryVisit != null
+                ? $"{currentStoryVisit.stage}회차 · {currentStoryVisit.stageTitle}"
+                : currentGhost.title;
             ShowInitialGhostPortrait();
             SetPortraitRootTransparent();
-            dialogueText.text = currentProgress.visitCount == 0
-                ? currentGhost.firstGreeting
-                : currentGhost.followUpGreeting;
+            dialogueText.text = currentStoryVisit != null
+                ? (currentProgress.visitCount > currentProgress.storyStage &&
+                   !string.IsNullOrEmpty(currentStoryVisit.retryGreeting)
+                    ? currentStoryVisit.retryGreeting
+                    : currentStoryVisit.greeting)
+                : (currentProgress.visitCount == 0 ? currentGhost.firstGreeting : currentGhost.followUpGreeting);
             timerText.text = "";
             ClearActions();
             AddButton("상담 시작", BeginCounseling, accent);
@@ -444,17 +456,18 @@ namespace GhostCounselor
         {
             UpdateTopBar("상담 · 질문 선택");
             dialogueText.text = askedQuestions == 0
-                ? "어떤 이야기부터 물어볼까?"
+                ? currentStoryVisit?.questionGuide ?? "어떤 이야기부터 물어볼까?"
                 : "조금 더 물어보면 고민의 진짜 모양이 보일 것 같다.";
             ClearActions();
 
-            for (int index = 0; index < currentGhost.questions.Count; index++)
+            List<QuestionData> questions = CurrentQuestions();
+            for (int index = 0; index < questions.Count; index++)
             {
                 if (usedQuestions.Contains(index))
                     continue;
 
                 int captured = index;
-                AddButton(currentGhost.questions[index].prompt, () => AskQuestion(captured), spirit);
+                AddButton(questions[index].prompt, () => AskQuestion(captured), spirit);
             }
 
             if (askedQuestions >= 2)
@@ -466,8 +479,9 @@ namespace GhostCounselor
             usedQuestions.Add(index);
             askedQuestions++;
             AdvanceGhostPortrait();
-            QuestionData question = currentGhost.questions[index];
-            dialogueText.text = currentProgress.visitCount == 0 ? question.firstReply : question.followUpReply;
+            QuestionData question = CurrentQuestions()[index];
+            dialogueText.text = currentStoryVisit != null ? question.firstReply :
+                (currentProgress.visitCount == 0 ? question.firstReply : question.followUpReply);
             ClearActions();
             AddButton("다음 질문", ShowQuestions, spirit);
             if (askedQuestions >= 2)
@@ -480,9 +494,8 @@ namespace GhostCounselor
             scary = false;
             answerTime = AnswerSeconds;
             UpdateTopBar("핵심 상담 · 10초");
-            dialogueText.text = currentProgress.visitCount == 0
-                ? currentGhost.criticalQuestion
-                : currentGhost.followUpCriticalQuestion;
+            dialogueText.text = currentStoryVisit?.criticalQuestion ??
+                (currentProgress.visitCount == 0 ? currentGhost.criticalQuestion : currentGhost.followUpCriticalQuestion);
             if (timerDial != null && timerDial.IsConfigured)
             {
                 timerText.gameObject.SetActive(false);
@@ -547,7 +560,7 @@ namespace GhostCounselor
                 outcome = CounselOutcome.Unresolved;
             else if (intent == AnswerIntent.Avoidance)
                 outcome = CounselOutcome.Partial;
-            else if (intent == currentGhost.preferredIntent && askedQuestions >= 2)
+            else if (intent == (currentStoryVisit?.preferredIntent ?? currentGhost.preferredIntent) && askedQuestions >= 2)
                 outcome = CounselOutcome.SpecialSolved;
             else
                 outcome = CounselOutcome.Solved;
@@ -580,7 +593,7 @@ namespace GhostCounselor
                     CounselOutcome.SpecialSolved => 2,
                     _ => 0
                 },
-                reaction = currentGhost.reactions[intent]
+                reaction = CurrentReactions()[intent]
             };
         }
 
@@ -591,6 +604,23 @@ namespace GhostCounselor
             currentProgress.visitCount++;
             currentProgress.relationship = Mathf.Clamp(currentProgress.relationship + result.relationshipDelta, -2, 4);
             currentProgress.specialSolved |= result.outcome == CounselOutcome.SpecialSolved;
+            currentVisitCompleted = result.outcome is CounselOutcome.Solved or CounselOutcome.SpecialSolved;
+            currentVisitPurified = false;
+            if (currentVisitCompleted && currentStoryVisit != null)
+            {
+                AddStoryFlag(currentStoryVisit.successFlag);
+                if (currentProgress.storyStage >= CounselsPerGhost - 1)
+                {
+                    currentProgress.purified = true;
+                    currentVisitPurified = true;
+                    AddStoryFlag($"{currentGhost.id}_purified");
+                    Unlock("성불 상담사", save.ghosts.Count(progress => progress.purified) >= ghosts.Count);
+                }
+                else
+                {
+                    currentProgress.storyStage++;
+                }
+            }
             save.lastGhostId = currentGhost.id;
             archiveUi?.RecordCounsel(save.day, currentGhost, result, answer);
             save.counselsCompletedToday++;
@@ -620,7 +650,53 @@ namespace GhostCounselor
             timerText.text = "";
             timerDial?.Hide();
             ClearActions();
-            AddButton("다음", () => ShowRewardNotice(result), accent);
+            AddButton(currentVisitCompleted ? "상담 후 이야기" : "다음", () =>
+            {
+                if (currentVisitCompleted)
+                    ShowStoryAction(result);
+                else
+                    ShowRewardNotice(result);
+            }, accent);
+        }
+
+        private void ShowStoryAction(CounselResult result)
+        {
+            string message = currentStoryVisit?.successAction;
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                ShowRewardNotice(result);
+                return;
+            }
+
+            Action nextAction = currentVisitPurified
+                ? () => ShowPurificationMoment(result)
+                : () => ShowRewardNotice(result);
+            string nextLabel = currentVisitPurified ? "마지막 인사" : "다음 손님";
+            if (!ShowInnerThought(message, nextLabel, nextAction))
+            {
+                dialogueText.text = message;
+                ClearActions();
+                AddButton(nextLabel, nextAction, accent);
+            }
+        }
+
+        private void ShowPurificationMoment(CounselResult result)
+        {
+            if (currentStoryVisit == null)
+            {
+                ShowRewardNotice(result);
+                return;
+            }
+
+            string message = $"{currentGhost.displayName}\n\n“{currentStoryVisit.purificationLine}”\n\n{currentStoryVisit.cinematicSummary}";
+            currentProgress.cinematicSeen = true;
+            GhostSaveSystem.Save(save);
+            if (!ShowInnerThought(message, "성불을 배웅한다", () => ShowRewardNotice(result)))
+            {
+                dialogueText.text = message;
+                ClearActions();
+                AddButton("성불을 배웅한다", () => ShowRewardNotice(result), accent);
+            }
         }
 
         private void ShowRewardNotice(CounselResult result)
@@ -732,7 +808,7 @@ namespace GhostCounselor
                 .Where(ghost =>
                     !save.ghostsMetToday.Contains(ghost.id) &&
                     ghost.id != save.lastGhostId &&
-                    GetProgress(ghost.id).visitCount < CounselsPerGhost)
+                    IsStoryAvailable(ghost, GetProgress(ghost.id)))
                 .ToList();
 
             // 모든 귀신의 상담 횟수를 가장 낮은 쪽부터 채운다. 20회가 끝나면
@@ -742,13 +818,13 @@ namespace GhostCounselor
                 candidates = ghosts
                     .Where(ghost =>
                         !save.ghostsMetToday.Contains(ghost.id) &&
-                        GetProgress(ghost.id).visitCount < CounselsPerGhost)
+                        IsStoryAvailable(ghost, GetProgress(ghost.id)))
                     .ToList();
             }
 
-            int lowestVisitCount = candidates.Min(ghost => GetProgress(ghost.id).visitCount);
+            int lowestVisitCount = candidates.Min(ghost => GetProgress(ghost.id).storyStage);
             List<GhostDefinition> pool = candidates
-                .Where(ghost => GetProgress(ghost.id).visitCount == lowestVisitCount)
+                .Where(ghost => GetProgress(ghost.id).storyStage == lowestVisitCount)
                 .ToList();
 
             int index = UnityEngine.Random.Range(0, pool.Count);
@@ -775,6 +851,55 @@ namespace GhostCounselor
             progress = new GhostProgress { ghostId = ghostId };
             save.ghosts.Add(progress);
             return progress;
+        }
+
+        private List<QuestionData> CurrentQuestions()
+        {
+            return currentStoryVisit?.questions ?? currentGhost.questions;
+        }
+
+        private Dictionary<AnswerIntent, string> CurrentReactions()
+        {
+            return currentStoryVisit?.reactions ?? currentGhost.reactions;
+        }
+
+        private static GhostStoryVisitData GetCurrentStoryVisit(GhostDefinition ghost, GhostProgress progress)
+        {
+            if (ghost?.storyVisits == null || ghost.storyVisits.Count == 0 || progress == null)
+                return null;
+
+            int index = Mathf.Clamp(progress.storyStage, 0, ghost.storyVisits.Count - 1);
+            return ghost.storyVisits[index];
+        }
+
+        private bool IsStoryAvailable(GhostDefinition ghost, GhostProgress progress)
+        {
+            if (progress.purified || progress.storyStage >= CounselsPerGhost)
+                return false;
+
+            // 해주는 주인공의 성장 사건이므로 다른 손님의 진도가 쌓인 뒤에 방문한다.
+            if (ghost.id != "bell")
+                return true;
+
+            int solvedStages = save.ghosts.Sum(item => item.storyStage);
+            return progress.storyStage switch
+            {
+                0 => solvedStages >= 3,
+                1 => save.ghosts.Any(item => item.purified),
+                2 => solvedStages >= 10,
+                3 => solvedStages >= 15,
+                _ => false
+            };
+        }
+
+        private void AddStoryFlag(string flag)
+        {
+            if (string.IsNullOrWhiteSpace(flag))
+                return;
+
+            save.storyFlags ??= new List<string>();
+            if (!save.storyFlags.Contains(flag))
+                save.storyFlags.Add(flag);
         }
 
         private void Unlock(string achievement, bool condition)

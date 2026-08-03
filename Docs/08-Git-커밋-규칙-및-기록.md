@@ -64,6 +64,13 @@
 
 ## 커밋 기록
 
+### 2026-08-03 — 본편 5인 연속 상담 진행 로직 반영
+
+- 커밋: 다음 항목에서 기록 — feat: 본편 귀신 5인 연속 상담 진행 적용
+- 바뀐 점: 다섯 귀신의 4회차 상담 원고를 게임 데이터로 연결했다. 해결한 상담만 다음 회차로 진행하며, 마지막 회차 해결 뒤에는 성불 대사와 시네마틱 요약이 안내 모달로 표시된다.
+- 주요 파일: Assets/GhostCounselor/Scripts/GhostStoryContentLibrary.cs, GhostGameController.cs, GhostGameModels.cs — 회차 원고, 진행 저장, 화면 흐름을 담당한다.
+- 확인: dotnet build Ghost.slnx --no-restore 성공(경고 0, 오류 0). Unity 재임포트와 Play Mode 전체 흐름은 아직 확인 필요다.
+
 ### 2026-08-03 — 귀신 5종 감정 표정 이미지 23종 생성
 
 - 커밋: `106a3a2` — `art: 귀신 5종 감정 표정 이미지 23종 추가`

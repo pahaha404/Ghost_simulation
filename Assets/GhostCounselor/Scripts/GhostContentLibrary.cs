@@ -15,7 +15,7 @@ namespace GhostCounselor
     {
         public static IReadOnlyList<GhostDefinition> Create()
         {
-            return new List<GhostDefinition>
+            var definitions = new List<GhostDefinition>
             {
                 Make(
                     "sticker", "딱지 할아버지", "신당에 눌러앉은 첫 번째 손님",
@@ -83,6 +83,9 @@ namespace GhostCounselor
                     Q("저를 시험하러 온 건가요?", "시험이라기보다 확인이지. 네가 돈만 보고 있는지.", "먹고사는 건 중요해. 다만 손님의 마음도 장부에 적으렴.")
                 )
             };
+
+            GhostStoryContentLibrary.Attach(definitions);
+            return definitions;
         }
 
         public static GhostDefinition Find(IReadOnlyList<GhostDefinition> ghosts, string id)
