@@ -64,6 +64,13 @@
 
 ## 커밋 기록
 
+### 2026-08-03 — 중앙 안내 모달을 GameScene에 적용
+
+- 커밋: `6151804` — `ui: 중앙 안내 모달을 GameScene에 적용`
+- 바뀐 점: 중앙 안내·속마음 모달의 딤 레이어, 카드, 메시지, 확인 버튼과 `GhostInnerThoughtModal` 참조를 실제 GameScene에 배치했다.
+- 주요 파일: `Assets/Scenes/GameScene.unity` — `Counselor UI > Root > Inner Thought Modal - Edit Here` 계층을 추가했다.
+- 확인: 씬 저장 완료. Unity Play Mode의 실제 모달 전환 확인 필요.
+
 ### 2026-08-03 — 마지막 귀신 반응 중 장부 숨김
 
 - 커밋: `f13f5fe` — `fix: 마지막 귀신 반응 중 장부 숨김`
