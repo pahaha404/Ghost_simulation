@@ -24,6 +24,7 @@ namespace GhostCounselor
         private const int PrototypeDays = 7;
         private const float AnswerSeconds = 10f;
         private const float ScaryThreshold = 5f;
+        private const float ActionGapBelowDialogue = 12f;
 
         private static readonly string[] TitlePages =
         {
@@ -74,6 +75,7 @@ namespace GhostCounselor
         private GhostInnerThoughtModal innerThoughtModal;
         private GhostTypewriterInputUI typewriterAnswerUi;
         private GhostArchiveUI archiveUi;
+        private GhostBokjumeoniInventoryUI bokjumeoniInventoryUi;
         private GhostCounselingTimerDial timerDial;
         private Button selectedActionButton;
         // 답변을 제출한 Enter가 같은 프레임에 새로 나타난 "다음" 버튼까지 누르지 않게 한다.
@@ -131,6 +133,14 @@ namespace GhostCounselor
             {
                 if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
                     archiveUi.TryCloseFromKeyboard();
+                return;
+            }
+
+            // 복주머니 창이 열린 동안에는 상담 버튼·타자기 입력을 막는다.
+            if (bokjumeoniInventoryUi != null && bokjumeoniInventoryUi.IsShowing)
+            {
+                if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
+                    bokjumeoniInventoryUi.TryCloseFromKeyboard();
                 return;
             }
 
@@ -307,10 +317,12 @@ namespace GhostCounselor
             innerThoughtModal = ui.GetComponent<GhostInnerThoughtModal>();
             typewriterAnswerUi = ui.GetComponent<GhostTypewriterInputUI>();
             archiveUi = ui.GetComponent<GhostArchiveUI>();
+            bokjumeoniInventoryUi = ui.GetComponent<GhostBokjumeoniInventoryUI>();
             timerDial = ui.GetComponent<GhostCounselingTimerDial>();
             // 책과 태블릿은 타이틀 화면에서도 눌릴 수 있다. 새 게임/이어하기 전에는
             // 저장하지 않는 빈 데이터로 먼저 버튼을 연결하고, 게임 시작 시 실제 저장본으로 교체한다.
             archiveUi?.Bind(new SaveData(), ghosts, ui);
+            bokjumeoniInventoryUi?.Bind(new SaveData());
             portraitHomePosition = portraitPanel.rectTransform.anchoredPosition;
             portraitImageHomePosition = portraitImage != null
                 ? portraitImage.rectTransform.anchoredPosition
@@ -358,6 +370,7 @@ namespace GhostCounselor
             GhostSaveSystem.Delete();
             save = new SaveData();
             archiveUi?.Bind(save, ghosts, editableUi);
+            bokjumeoniInventoryUi?.Bind(save);
             GhostSaveSystem.Save(save);
             ShowDayStart();
         }
@@ -366,6 +379,7 @@ namespace GhostCounselor
         {
             save = GhostSaveSystem.Load();
             archiveUi?.Bind(save, ghosts, editableUi);
+            bokjumeoniInventoryUi?.Bind(save);
             if (save.day > PrototypeDays)
                 ShowEnding();
             else
@@ -577,6 +591,7 @@ namespace GhostCounselor
 
             if (!string.IsNullOrEmpty(result.itemName))
                 save.items.Add(result.itemName);
+            bokjumeoniInventoryUi?.Refresh();
 
             Unlock("첫 상담", save.ghosts.Sum(progress => progress.visitCount) >= 1);
             Unlock("오방색 명상담", result.outcome == CounselOutcome.SpecialSolved);
@@ -957,7 +972,7 @@ namespace GhostCounselor
             // Convert the parent's centered local coordinate into its bottom-left
             // anchored coordinate. The action area's top then begins just beneath Dialogue.
             float x = bottomLeft.x + parent.rect.width * parent.pivot.x;
-            float y = bottomLeft.y + parent.rect.height * parent.pivot.y - 8f;
+            float y = bottomLeft.y + parent.rect.height * parent.pivot.y - ActionGapBelowDialogue;
             float width = Mathf.Max(1f, topRight.x - bottomLeft.x);
             float height = Mathf.Max(70f, buttonCount * 70f + Mathf.Max(0, buttonCount - 1) * 8f);
 
