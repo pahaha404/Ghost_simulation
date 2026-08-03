@@ -100,6 +100,8 @@ namespace GhostCounselor
             submitted = submitAction;
             guideText.text = guide;
             typewriterRoot.SetActive(true);
+            // 복주머니처럼 나중에 생성된 UI가 있어도, 핵심 상담 타자기 창은 항상 최상단에 보인다.
+            typewriterRoot.transform.SetAsLastSibling();
             inputField.text = string.Empty;
             RefreshEnterLamp(inputField.text);
             inputField.ForceLabelUpdate();
